@@ -39,4 +39,3 @@ Este proyecto implementa una solución completa para la **gestión de alquileres
 
 ---
 
-## 📁 Estructura del Proyecto
