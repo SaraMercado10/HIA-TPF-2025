@@ -2,7 +2,9 @@
 
 **Práctica Integradora Final – Herramientas Informáticas Avanzadas**  
 **Integrantes**:  
+- Cruz, Kevin Brian Joel
 - Mercado, Sara Denise
+- Montaño, Nahir María Cecilia
 
 **Tecnologías**: Node.js, Express, Sequelize, Angular, MySQL 8.0, Docker, Prometheus, Grafana
 
