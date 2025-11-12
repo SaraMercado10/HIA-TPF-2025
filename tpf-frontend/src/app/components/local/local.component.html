@@ -1,0 +1,49 @@
+<div class="container bg-negro-transparente text-white mt-0 my-md-3" >
+    <div class="mx-4 py-2">
+        <h3 class="text-center mt-3">Local - {{local.numero}}</h3>
+    </div>
+    <!--Info del Local-->
+    <div class="mx-4 pb-2">
+        <div class="card bg-dark text-white mb-3">
+            <div class="row g-0">
+              <div class="col-md-4">
+                <img [src]="local.logo" class="img-fluid rounded-start" alt="Local: {{local.numero}}">
+              </div>
+              <div class="col-md-8"> 
+                <div class="card-body ">
+                  <h5 class="card-title">{{local.nombre}}</h5>
+                  <div class="mt-5">
+                    <p class="card-text"><strong>Costo: </strong>{{local.costoMes}}</p>
+                    <p class="card-text"><strong>Rubro: </strong>{{local.rubro}}</p>
+                    <p class="card-text"><strong>Superficie: </strong>{{local.superficie}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+</div>
+<!--AQUI Promociones del local-->
+<div class="container bg-negro-transparente text-white mt-0 my-md-3" *ngIf="promociones.length>0">
+    <div class="mx-4 py-2">
+        <h3 class="text-center mt-3">Promociones</h3>
+    </div>
+    <div class="container py-4">
+      <!--Seccion Promociones-->
+      <div id="carouselExampleFade" class="carousel slide carousel-fade">
+        <div class="carousel-inner">
+          <div class="carousel-item active" *ngFor="let p of promociones">
+            <div >
+              <img [src]="p.imagen" class="d-block w-100 rounded" alt="publicidad">
+            </div>
+          </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    </div>

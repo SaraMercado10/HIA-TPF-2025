@@ -1,0 +1,33 @@
+app-root{
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: rgb(1, 14, 27);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/img/fondo.jpeg');
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-attachment: fixed;
+    background-size: cover;
+}   
+main{
+    margin-top: 59px;
+    flex: 1;
+}
+
+.bg-morado{
+    background-color: rgba(28, 24, 41,0.8)
+}
+.bg-negro-transparente{
+    background-color: rgba(0, 0, 0,0.6);  
+}
+
+.btn-custom {
+    background-color: #264d68; 
+    border-color: #264d68; 
+    color: white;
+  }
+    
+  .btn-custom:hover {
+    background-color: #5589ad;
+    border-color: #5589ad;
+  }

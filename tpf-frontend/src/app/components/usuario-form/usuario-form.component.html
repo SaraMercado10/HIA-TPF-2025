@@ -1,0 +1,88 @@
+<div *ngIf="mostrarForm == true" class="container mt-4 bg-opacidad">
+  <div class="heading">
+    {{ accion === "new" ? "Agregar Propietario" : "Modificar Propietario" }}
+  </div>
+  <form class="form" #formPropietario="ngForm">
+    <div class="input-field">
+      <input [(ngModel)]="propietario.usuario" required #usu="ngModel" autocomplete="off" type="text" name="usuario"
+        id="usuario" />
+      <label for="usuario">Ingrese Usuario</label>
+      <div class="alert alert-danger m-2" [hidden]="usu.valid || usu.pristine">
+        El usuario es obligatorio
+      </div>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="propietario.password" required #pass="ngModel" autocomplete="off" type="text" name="password"
+        id="password" />
+      <label for="password">Ingrese la Contraseña</label>
+      <div class="alert alert-danger m-2" [hidden]="pass.valid || pass.pristine">
+        La contraseña es obligatoria
+      </div>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="propietario.apellido" required #apellido="ngModel" autocomplete="off" type="text"
+        name="apellido" id="apellido" />
+      <label for="apellido">Ingrese Apellido</label>
+      <div class="alert alert-danger m-2" [hidden]="apellido.valid || apellido.pristine">
+        El apellido es obligatorio
+      </div>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="propietario.nombres" required #name="ngModel" autocomplete="off" type="text" name="nombres"
+        id="nombres" />
+      <label for="nombres">Ingrese Nombre</label>
+      <div class="alert alert-danger m-2" [hidden]="name.valid || name.pristine">
+        El nombre es obligatorio
+      </div>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="propietario.dni" required #documento="ngModel" autocomplete="off" type="text" name="dni"
+        id="dni" />
+      <label for="dni">Ingrese DNI</label>
+      <div class="alert alert-danger m-2" [hidden]="documento.valid || documento.pristine">
+        El DNI es obligatorio
+      </div>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="propietario.email" required email #email="ngModel" autocomplete="off" type="text" name="email"
+        id="email" />
+      <label for="email">Ingrese Email</label>
+      <div class="alert alert-danger m-2" [hidden]="email.valid || email.pristine">
+        Debe ingresar un formato de email valido
+      </div>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="propietario.telefono" required #tell="ngModel" autocomplete="off" type="text" name="telefono"
+        id="telefono" />
+      <label for="telefono">Ingrese Telefono</label>
+      <div class="alert alert-danger m-2" [hidden]="tell.valid || tell.pristine">
+        El telefono es obligatorio
+      </div>
+    </div>
+    <div class="input-field">
+      <select [(ngModel)]="propietario.perfil" name="cantidadMesAlquiler" id="cantidadMesAlquiler"
+          class="form-select" required>
+          <option value="" disabled selected>Seleccione Perfil de Usuario</option>
+          <option value="propietario">Propietario</option>
+          <option value="administrativo">Administrador</option>
+      </select>
+  </div>
+    <div class="input-field checkbox">
+      <input [(ngModel)]="propietario.activo" autocomplete="off" type="checkbox" name="activo" id="destacado" />
+      <label for="activo">Activo</label>
+    </div>
+    <div class="btn-container">
+      <button *ngIf="accion === 'new'" type="submit" class="btn" [disabled]="formPropietario.invalid"
+        (click)="registrarPropietario()">
+        Registrar Usuario
+      </button>
+      <button *ngIf="accion === 'update'" type="button" class="btn" [disabled]="formPropietario.invalid"
+        (click)="actualizarPropietario(propietario)">
+        Actualizar Usuario
+      </button>
+      <button class="btn-tabla" *ngIf="accion === 'new'" (click)="verPropietarios()">
+        Ver Usuarios
+      </button>
+    </div>
+  </form>
+</div>

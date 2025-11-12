@@ -1,0 +1,119 @@
+<div *ngIf="mostrarForm == true" class="container mt-0 my-md-3 bg-negro-transparente">
+  <div class="heading">
+    {{ accion === "new" ? "Agregar Local" : "Modificar Local" }}
+  </div>
+  <form class="form" #formLocal="ngForm">
+    <!--<div class="input-field">
+      <input [(ngModel)]="local.numero" id="numeroLocal" name="numeroLocal" type="text" #num="ngModel" autocomplete="off" required />
+      <label class="lbl" for="numeroLocal">Ingrese número local</label>
+      <div class="alert alert-danger m-2" [hidden]="num.valid || num.pristine">
+        El numero de local es obligatorio
+      </div>
+    </div>-->
+    <!--<div class="input-field">
+      <input [(ngModel)]="local.nombre" id="nombre" name="nombre" type="text" #name="ngModel" autocomplete="off" required />
+      <label class="lbl" for="nombre">Ingrese nombre local</label>
+      <div class="alert alert-danger m-2" [hidden]="name.valid || name.pristine">
+        El nombre es obligatorio
+      </div>
+    </div>-->
+    <div class="input-field">
+      <input [(ngModel)]="local.superficie" id="superficie" name="superficie" type="text" #super="ngModel" autocomplete="off" required />
+      <label class="lbl" for="superficie">Ingrese la superficie</label>
+      <div class="alert alert-danger m-2" [hidden]="super.valid || super.pristine">
+        La superficie es obligatoria
+      </div>
+    </div>
+    <div class="input-field checkbox">
+      <input [(ngModel)]="local.habilitado" id="habilitado" name="habilitado" type="checkbox" autocomplete="off" />
+      <label class="text-white" for="habilitado">Habilitado</label>
+    </div>
+    <div class="input-field">
+      <input [(ngModel)]="local.costoMes" id="costoMes" name="costoMes" type="number" #disfraces="ngModel" autocomplete="off" placeholder="" min="1" required />
+      <label class="lbl" for="costoMes">Costo Mensual</label>
+      <div class="alert alert-danger m-2" [hidden]="disfraces.valid || disfraces.pristine">
+        El costo mensual debe ser mayor o igual a 1
+      </div>
+    </div>
+    <div class="input-field">
+      <div class="form-group text-white">
+        <label class="lbl-img">Imagen del local</label>
+        <input type="file" id="fileInput" accept="image/*" class="form-control-file" (change)="archivoSeleccionado($event,'esImagen')" /> 
+      </div> 
+    </div>
+    <!--<div class="input-field checkbox">
+      <input [(ngModel)]="local.alquilado" id="alquilado" name="alquilado" type="checkbox" autocomplete="off" />
+      <label class="text-white" for="alquilado">Alquilado</label>
+    </div>-->
+    <!--<div class="input-field">
+      <input [(ngModel)]="local.rubro" id="rubro" name="rubro" type="text" #rubro="ngModel" autocomplete="off" required />
+      <label class="lbl" for="rubro">Ingrese rubro</label>
+      <div class="alert alert-danger m-2" [hidden]="rubro.valid || rubro.pristine">
+        El rubro es obligatorio
+      </div>
+    </div>-->
+    <div class="input-field">
+      <div class="form-group text-white">
+        <label class="lbl-img">Seleccione un logo para el local</label>
+        <input type="file" id="fileInput" accept="image/*" class="form-control-file" (change)="archivoSeleccionado($event,'esLogo')" /> 
+      </div> 
+    </div>
+    <div class="btn-container">
+      <button class="btn" type="submit" [disabled]="formLocal.invalid" (click)="registrarLocal()" *ngIf="accion === 'new'">
+        Guardar Cambios
+      </button>
+      <button class="btn" type="button" [disabled]="formLocal.invalid" (click)="modificarLocal(local)" *ngIf="accion === 'update'">
+        Guardar Cambios
+      </button>
+      <button class="btn-tabla" *ngIf="accion === 'new'" (click)="verLocales()">
+        Ver Locales
+      </button>
+    </div>
+  </form>
+</div>
+
+<!--table class="table mt-3"> 
+  <thead>
+      <tr>
+          <th>Image</th>
+          <th>URL</th>
+          <th>Download</th>
+      </tr> 
+  </thead>
+  <tbody>
+      <tr *ngFor="let file of files"> 
+          <td> <img [src]="file.base64" class="img-thumbnail" style="max-width: 300px" /> </td>
+          <td> <textarea [value]="file.base64" class="form-control" rows="3" ></textarea> </td>
+          <td> <a [href]="file.safeurl" download="file.png" class="btn btn-primary" >Download</a > </td>
+      </tr>
+</tbody>
+</table-->
+
+<!-- Modal -->
+<div
+  class="modal fade bg-opacidad"
+  id="localGuardadoModal"
+  tabindex="-1"
+  aria-labelledby="ticketGuardadoModalLabel"
+  aria-hidden="true"
+  [ngClass]="{ show: modalVisible }"
+  [ngStyle]="{
+    display: modalVisible ? 'block' : 'none',
+    'background-color': 'rgba(0, 0, 0, 0.5)'
+  }"
+>
+  <div class="modal-dialog">
+    <div class="modal-content modal-cuerpo">
+      <div class="modal-header">
+        <h5 class="modal-title" id="localGuardadoModalLabel">Agregar Local</h5>
+      </div>
+      <div class="modal-body">Local guardado exitosamente.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" (click)="aceptarModal()">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

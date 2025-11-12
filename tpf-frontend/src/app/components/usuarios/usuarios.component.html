@@ -1,0 +1,69 @@
+<div class="container bg-negro-transparente mt-0 my-md-3">
+  <div class="text-white mx-4 py-2">
+    <h3 class="text-center mt-3">Listado de Usuarios</h3>
+    <button type="button" class="btn btn-success mb-2" (click)="agregar()">Agregar</button>
+  </div>
+
+  <div class="form text-white mb-3">
+    <div class="row">
+      <div class="col-lg-6 ms-3">
+        <label for="usuario" class="form-label">Usuario</label>
+        <input type="text" class="form-control" id="usuario" placeholder="Buscar usuario" (change)="filtrarUsuarios()" [(ngModel)]="iUsuario">
+      </div>
+
+      <div class="col-lg-2 ms-2 me-5">
+        <label for="perfil" class="form-label">Perfil</label>
+        <div class="">
+          <select class="form-control" id="perfil" (change)="filtrarUsuarios()" [(ngModel)]="perfil">
+            <option value="">-</option>
+            <option value="propietario">Propietario</option>
+            <option value="administrativo">Administrativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-lg-2 align-items-center">
+          <div class="form-check">
+            <label class="form-check-label" for="activo">Solo Activos</label>
+            <input type="checkbox" class="form-check-input" id="activo" (change)="filtrarUsuarios()" [(ngModel)]="activo">
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive-lg text-white mx-4 py-2">
+    <table class="table table-dark table-hover" *ngIf="usuarios.length > 0">
+      <thead>
+        <tr>
+          <th scope="col">Usuario</th>
+          <th scope="col">Apellido</th>
+          <th scope="col">Nombres</th>
+          <th scope="col">Perfil</th>
+          <th scope="col">DNI</th>
+          <th scope="col">Email</th>
+          <th scope="col">Telefono</th>
+          <th scope="col" class="text-center" colspan="2">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of usuarios">
+          <td>{{u.usuario}}</td>
+          <td>{{u.apellido}}</td>
+          <td>{{u.nombres}}</td>
+          <td>{{u.perfil}}</td>
+          <td>{{u.dni }}</td>
+          <td>{{u.email}}</td>
+          <td>{{u.telefono}}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-info" (click)="modificar(u.id)" [disabled]="u.perfil == 'root'"><i
+                class="bi bi-pen-fill"></i></button>
+          </td>
+          <td class="text-start">
+            <button type="button" class="btn btn-danger" (click)="eliminar(u.id)" [disabled]="u.perfil == 'root'"><i
+                class="bi bi-trash-fill"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

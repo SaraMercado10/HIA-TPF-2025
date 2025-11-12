@@ -1,0 +1,71 @@
+<div class="row my-5" *ngIf="alquiler">
+    <div id="data" class="col-lg-4 offset-1 text-white">
+        <h2 class="mb-3">Local: {{alquiler.local.nombre}}</h2>
+        <div class="ms-1">
+            <h5 class="mb-3">Fecha de Inicio de Alquiler: {{alquiler.fechaAlquiler | date : 'dd/MM/yyyy'}}</h5>
+        <h5 class="mb-3">Total de Cuotas: {{alquiler.cuota.length}}</h5>
+        <h5 class="mb-3">Costo Final de Alquier: USD{{alquiler.costoAlquiler | currency}}</h5>
+        </div>
+
+        <h2 class="mt-5 mb-3">Ultima Cuota</h2>
+      
+        <div class="ms-1">
+            <h5 class="mb-3">Costo: USD{{proximaCuotaAPagar.monto | currency}}</h5>
+            <h5 class="mb-3">Proximo Vencimiento: {{proximaCuotaAPagar.fechaVencimiento | date : 'dd/MM/yyyy'}}</h5>
+            <h5 class="mb-3">Monto a pagar: USD{{proximaCuotaAPagar.monto | currency}}</h5>
+            <h5 class="mb-3">Estado ultima cuota: <span class="fw-bold text-warning">{{estadoCuota}}</span></h5>
+
+            <h5 class="mt-5 mb-3">Metodos de Pago</h5>
+            <div class="mt-2 d-flex flex-column w-75">
+                 <button type="button" class="btn btn-primary mb-3" [disabled]="estadoCuota=='Saldado'" (click)="pagarCuota()">Pagar con <img src="../../../assets/img/mp_logo.png" class="img-fluid" style="height: 4vh;" alt="Mercado Pago"></button>
+                 <ngx-paypal [config]="payPalConfig"></ngx-paypal>
+            </div>
+      </div>
+        <div class="ms-2 mt-5">
+            <a style="text-decoration: none;" class="text-info" href="#" data-bs-toggle="modal" data-bs-target="#mi-modal">Ver Cuotas</a>
+        </div>
+    </div>
+
+    <!--Grafico de lineas-->
+    <div class="d-none d-lg-block col-lg-7 text-white">
+        <h3 class="text-center">Seguimiento de Cuotas Pagadas</h3>
+        <div style="height: 70vh; width: 90%;" class="d-flex justify-content-center align-content-center mt-5">
+            <canvas id="grafico"></canvas>
+        </div>
+    </div>
+
+    <!--Historial de Cuotas-->
+
+    <div class="modal fade" id="mi-modal">
+        <div class="modal-dialog modal-dialog-scrollable custom-modal-width">
+            <div class="modal-content">
+
+                <div class="modal-header text-bg-dark">
+                    <h5 class="modal-title">Cuotas</h5>
+                    <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <div *ngFor="let c of alquiler.cuota" class="card m-4 custom-card-width">
+                            <div class="card-body">
+                                <h5 class="card-title">Detalles de Cuota</h5>
+                                <p *ngIf="c.fechaPago" class="card-text">Fecha pago: {{c.fechaPago | date:
+                                    'dd/MM/yyyy'}}</p>
+                                <p class="card-text">Monto: USD{{alquiler.local.costoMes | currency}}</p>
+                                <p class="card-text">Monto a Pagar: USD{{c.monto | currency}}</p>
+                                <p class="card-text">Estado: {{c.pagado ? "Pagado" : "Pendiente"}}</p>
+                                <p class="card-text">Fecha de Vencimiento : {{c.fechaVencimiento | date : 'dd/MM/yyyy'}}</p>
+                                <img src="{{c.cuponQr}}" alt="QR">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer text-bg-dark">
+                    <button class="btn btn-danger" data-bs-dismiss="modal">volver</button>
+                    <button class="btn btn-primary" (click)="adelantarCuota(alquiler)">Adelantar Cuota</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

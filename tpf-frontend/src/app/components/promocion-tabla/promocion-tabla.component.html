@@ -1,0 +1,27 @@
+<div class="container bg-negro-transparente mt-0 my-md-3">
+    <div class="text-white mx-4 py-2">
+      <h3 class="text-center mt-3">Listado de Promociones</h3>
+    </div>
+    <div class="table-responsive text-white mx-4 py-2">
+      <table class="table table-dark table-hover"  *ngIf="promociones.length > 0">
+        <thead>
+          <tr>
+              <th scope="col">Alquiler</th>
+              <th scope="col">Descripcion</th>
+              <th scope="col">Disponible</th>
+              <th scope="col" class="text-center" colspan="2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of promociones">
+            <th scope="row">{{ p.alquiler.numeroAlquiler }}</th>
+            <th>{{ p.descripcion }}</th>
+            <td>{{ p.disponible ? "Promoción Activa" : "Promoción no Activa" }}</td>
+            <td class="text-start">
+              <button type="button" class="btn btn-danger" (click)="eliminarPromocion(p.id)"><i class="bi bi-trash-fill"></i></button>
+            </td> 
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>

@@ -1,0 +1,182 @@
+.container {
+  border: solid 1px #8d8d8d;
+  padding: 20px;
+  border-radius: 20px;
+  
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.container .heading {
+  font-size: 1.3rem;
+  color: white;
+  margin-bottom: 20px;
+  font-weight: bolder;
+  text-align: center;
+}
+
+.form {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.form .btn-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-cancelar,
+.btn-tabla,
+.form .btn {
+  padding: 10px 20px;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: bolder;
+  transition: all 0.2s ease;
+  box-shadow: 0px 2px 3px #000d3848, inset 0px 4px 5px #0070f0,
+    inset 0px -4px 5px #002cbb;
+}
+
+.btn-cancelar {
+  border: solid 1px #cf0f19;
+  background: linear-gradient(135deg, #cf0f19, #cf0f19);
+  box-shadow: 0px 2px 3px #000d3848, inset 0px 4px 5px #cf0f19,
+    inset 0px -4px 5px #cf0f19;
+}
+
+.btn-tabla {
+  border: solid 1px #06bbdb;
+  background: linear-gradient(135deg, #06bbdb, #06bbdb);
+  box-shadow: 0px 2px 3px #000d3848, inset 0px 4px 5px #06bbdb,
+    inset 0px -4px 5px #06bbdb;
+}
+
+.form .btn {
+  border: solid 1px #1034aa;
+  background: linear-gradient(135deg, #0034de, #006eff);
+}
+
+.form .btn:active {
+  box-shadow: inset 0px 4px 5px #0070f0, inset 0px -4px 5px #002cbb;
+  transform: scale(0.995);
+}
+
+.input-field {
+  position: relative;
+  width: 100%;
+  left: 3.5%;
+}
+
+.input-field .lbl {
+  position: absolute;
+  color: white;
+  pointer-events: none;
+  background-color: transparent;
+  left: 15px;
+  transform: translateY(0.6rem);
+  transition: all 0.3s ease;
+}
+
+.input-field input {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background-color: black;
+  border: solid 1px white;
+  letter-spacing: 1px;
+  width: calc(100% - 30px);
+  color: white;
+}
+
+.input-field input:focus,
+.input-field input:valid {
+  outline: none;
+  border: solid 1px white;
+}
+
+.input-field input:focus ~ .lbl,
+.input-field input:valid ~ .lbl{
+  transform: translateY(-51%) translateX(-10px) scale(0.8);
+  background-color: black;
+  padding: 0px 5px;
+  color: white;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 100px;
+}
+
+.lbl-img {
+  transform: translateY(50%) translateX(-10px) scale(0.8);
+  background-color: black;
+  padding: 0px 5px;
+  color: white;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 100px;
+}
+
+.form .passicon {
+  cursor: pointer;
+  font-size: 1.3rem;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+}
+
+.form .close {
+  display: none;
+}
+
+.input-field.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-field.checkbox input {
+  width: auto;
+  margin-left: 0;
+}
+
+.modal-cuerpo {
+  background-color: black;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3);
+  border-radius: 0.6rem;
+  color: white;
+}
+
+/*Para eliminar el disminuir y aumentar en los label tipo number*/
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 576px) {
+  .form .btn-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-cancelar,
+  .btn-tabla,
+  .form .btn {
+    font-size: 0.8rem;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+  }
+}

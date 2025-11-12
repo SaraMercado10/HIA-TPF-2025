@@ -1,0 +1,112 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 2em;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 25px;
+    transition: 0.4s ease-in-out;
+    max-width: 400px; 
+    width: 90%; 
+    margin: auto; 
+    margin-top: 5%; 
+  }
+  
+  .form:hover {
+    transform: scale(1.05);
+    border: 1px solid black;
+  }
+  
+  #heading {
+    text-align: center;
+    margin: 2em 0;
+    color: rgb(255, 255, 255);
+    font-size: 1.2em;
+  }
+  
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.6em;
+    border-radius: 25px;
+    color: white;
+    background-color: #171717;
+    box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+  }
+  
+  .input-icon {
+    height: 1.3em;
+    width: 1.3em;
+    fill: white;
+  }
+  
+  .input-field {
+    background: none;
+    border: none;
+    outline: none;
+    flex: 1; 
+    color: #d3d3d3;
+  }
+  
+  .form .btn {
+    display: flex;
+    justify-content: center;
+    gap: 1em; 
+    /*margin-top: 2.5em;*/
+    margin-top: 1em;
+  }
+  
+  .button1,
+  .button2,
+  .button3 {
+    padding: 0.5em 1em;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    transition: 0.4s ease-in-out;
+    background-color: #252525;
+    color: white;
+  }
+  
+  .button1:hover,
+  .button2:hover,
+  .button3:hover {
+    background-color: black;
+    color: white;
+  }
+  
+  .button2 {
+    padding-left: 2em;
+    padding-right: 2em;
+  }
+  
+  .button3 {
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+    padding: 0.5em 1em;
+  }
+  
+  
+  @media (max-width: 600px) {
+    .form {
+      padding: 1.5em;
+      width: 95%; 
+    }
+  
+    #heading {
+      font-size: 1em; 
+      margin: 1.5em 0;
+    }
+  
+    .field {
+      padding: 0.5em;
+    }
+  
+    .button1,
+    .button2,
+    .button3 {
+      padding: 0.4em 0.8em; 
+    }
+  }
+  

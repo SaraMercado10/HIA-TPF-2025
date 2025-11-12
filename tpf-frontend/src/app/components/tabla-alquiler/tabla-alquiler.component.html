@@ -1,0 +1,87 @@
+<div class="container bg-negro-transparente mt-0 my-md-3">
+
+
+    <div class="text-white mx-4 py-2 mt-5">
+        <h3 class="text-center mt-3">Listado de Alquileres</h3>
+        <button *ngIf=" userPerfil() != 'propietario'" type="button" class="btn btn-success mb-2" (click)="agregarAlquiler()">Agregar</button>
+    </div>
+    <div class="table-responsive-lg text-white mx-4 py-2">
+        <table class="table table-dark table-hover" *ngIf="alquileres.length > 0">
+            <thead>
+                <tr>
+                    <th scope="col">Número Alquiler</th>
+                    <th scope="col">Número Local</th>
+                    <th scope="col">Nombre Local</th>
+                    <th scope="col">Propietario</th>
+                    <th scope="col">Meses a Alquilar</th>
+                    <th scope="col">Costo Total</th>
+                    <th scope="col">Costo Mensual</th>
+                    <th scope="col">Fecha Alquiler</th>
+                    <th scope="col">Cuotas</th>
+                    <th scope="col">Rubro</th>
+                    <th *ngIf=" userPerfil() != 'propietario'" scope="col" class="text-center" colspan="2">Acciones</th>
+                    <th *ngIf=" userPerfil() == 'propietario'" scope="col" class="text-center" colspan="2">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let a of alquileres">
+                    <th scope="row">{{a.numeroAlquiler}}</th>
+                    <td>{{ a.local.numero }}</td>
+                    <td>{{ a.local.nombre }}</td>
+                    <td>{{ a.usuario?.nombres}} {{a.usuario?.apellido}}</td>
+                    <td>{{ a.cantidadMesAlquiler }} Meses</td>
+                    <td>{{ a.costoAlquiler | currency:'USD':'symbol':'1.2-2' }}</td>
+                    <td>{{ a.local.costoMes | currency:'USD':'symbol':'1.2-2' }}</td>
+                    <td>{{ a.fechaAlquiler| date: 'dd/MM/yyyy'}}</td>
+                    <td>Tienes {{ a.cuota.length }} cuotas <br><a *ngIf="userPerfil() != 'propietario'" style="text-decoration: none;" href="#"
+                            data-bs-toggle="modal" data-bs-target="#mi-modal" (click)="obtenerCuotas(a)">Ver
+                            detalles..</a></td>
+                    <td>{{ a.local.rubro }}</td>
+                    <td *ngIf=" userPerfil() != 'propietario'" class="text-end">
+                        <button type="button" class="btn btn-info" (click)="modificarAlquiler(a.id)"><i
+                                class="bi bi-pen-fill"></i></button>
+                    </td>
+                    <td *ngIf=" userPerfil() != 'propietario'" class="text-start">
+                        <button type="button" class="btn btn-danger" (click)="eliminarAlquiler(a)"><i
+                                class="bi bi-trash-fill"></i></button>
+                    </td>
+                    <td *ngIf=" userPerfil() == 'propietario'" class="text-end">
+                        <button type="button" class="btn btn-info text-white" (click)="verDetalle(a.id)">Ver</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!--MODAL-->
+
+    <div class="modal fade" id="mi-modal">
+        <div class="modal-dialog modal-dialog-scrollable custom-modal-width">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Cuotas</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <div *ngFor="let c of cuotas" class="card m-4 custom-card-width">
+                            <div class="card-body">
+                                <h5 class="card-title">Detalles de Cuota</h5>
+                                <p *ngIf="c.fechaPago" class="card-text">Fecha pago: {{c.fechaPago | date: 'dd/MM/yyyy'}}</p>
+                                <p class="card-text">Monto: {{alquiler.local.costoMes | currency:'USD':'symbol':'1.2-2'}} $</p>
+                                <p class="card-text">Monto a Pagar: {{ c.monto | currency:'USD':'symbol':'1.2-2' }}</p>
+                                <p class="card-text">Estado: {{c.pagado ? "Pagado" : "Pendiente"}}</p>
+                                <p class="card-text">Fecha de Vencimiento : {{c.fechaVencimiento | date : 'dd/MM/yyyy'}}</p>
+                                <img src="{{c.cuponQr}}" alt="QR">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>

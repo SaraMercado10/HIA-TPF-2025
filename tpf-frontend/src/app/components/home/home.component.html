@@ -1,0 +1,46 @@
+<div class="container bg-negro-transparente mt-0 my-md-3">
+    <div class="container pt-4">
+      <!--Seccion Promociones-->
+      <div id="carouselExampleFade" class="carousel slide carousel-fade">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <div >
+              <img src="../../../assets/img/publi1.jpg" class="d-block w-100 rounded" alt="...">
+            </div>
+          </div>
+          <div class="carousel-item">
+            <div >
+              <img src="../../../assets/img/publi2.png" class="d-block w-100 rounded" alt="47 street">
+            </div>
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    </div>
+    <!--Seccion Buscar-->
+    <div class="mx-auto px-4 pt-4 w-50 d-none d-md-block"><!--Vista desktop-->
+      <div class="input-group">
+        <input id="buscar" type="text" class="form-control" placeholder="Buscar" name="buscar" (change)="filtrarLocales()"[(ngModel)]="nombre"> 
+        <button class="btn btn-secondary" type="button" id="buscar" ><i class="bi bi-search"></i></button>
+      </div>
+    </div>
+    <div class="mx-auto px-4 pt-4 w-100 d-block d-md-none"><!--Vista movil-->
+      <div class="input-group">
+        <input id="buscar" type="text" class="form-control" placeholder="Buscar" name="buscar" (change)="filtrarLocales()"[(ngModel)]="nombre"> 
+        <button class="btn btn-secondary" type="button" id="buscar" ><i class="bi bi-search"></i></button>
+      </div>
+    </div>
+    <!--Seccion Locales-->
+    <div class="row pb-4 px-3">
+      <div class="col-6 col-md-3 col-lg-2 mt-4" *ngFor="let l of locales">
+        <a (click)="verLocal(l.id)"><img [src]="l.logo" class="d-block w-100 rounded" alt="Local: {{l.numero}}"></a>
+      </div>
+    </div>
+</div>

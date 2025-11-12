@@ -1,0 +1,12 @@
+<div>
+    <div class="col-10 offset-1 my-5">
+        <h2 class="text-white text-center">{{titulo}}</h2>
+        <div class="d-flex justify-content-around align-content-center">
+            <button type="button" class="btn btn-link text-info" (click)="getDataCuotas()">Barras</button>
+            <button type="button" class="btn btn-link text-info" (click)="getDataLocales()">Torta</button>
+        </div>
+        <div style="height: 70vh;" class="d-flex justify-content-center align-content-center" *ngIf="totalCuotas">
+            <canvas id="grafico"></canvas>
+        </div>
+    </div>
+</div>

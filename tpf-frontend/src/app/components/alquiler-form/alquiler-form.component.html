@@ -1,0 +1,80 @@
+<div *ngIf="mostrarForm == true && userLogin()" class="container mt-5 bg-opacidad">
+    <div class="heading">
+        {{ accion === "new" ? "Agregar Alquiler" : "Modificar Alquiler" }}
+    </div>
+    <form class="form" #formAlquiler="ngForm">
+        
+        <div class="input-field" *ngIf="accion == 'new'">
+            <select [(ngModel)]="local" name="local" id="local" class="form-select" (change)="calcularTotal()" required>
+                <option value="null" disabled selected>Seleccione un local...</option>
+                <option *ngFor="let l of locales" [ngValue]="l">{{ l.numero }}</option>
+            </select>
+        </div>
+
+        <div class="input-field" *ngIf="accion == 'new'">
+            <select [(ngModel)]="alquiler.cantidadMesAlquiler" name="cantidadMesAlquiler" id="cantidadMesAlquiler"
+                class="form-select" (change)="calcularTotal()" required>
+                <option value="null" disabled selected>Seleccione cantidad de meses a alquilar...</option>
+                <option [ngValue]="6">6 Meses</option>
+                <option [ngValue]="12">12 Meses</option>
+                <option [ngValue]="18">18 Meses</option>
+                <option [ngValue]="24">24 Meses</option>
+            </select>
+        </div>
+        
+        <div class="input-field">
+            <input [(ngModel)]="alquiler.local.nombre" required #nombreLocal="ngModel" autocomplete="off" type="text"
+                name="nombreLocalInput" id="nombreLocalInput" />
+            <label for="nombreLocalInput">Ingrese nombre de Local</label>
+            <div class="alert alert-danger m-2" [hidden]="nombreLocal.valid || nombreLocal.pristine">
+                El nombre de local es obligatorio
+            </div>
+        </div>
+
+        <div class="input-field" >
+            <select [(ngModel)]="alquiler.local.rubro" name="rubro" id="rubro" class="form-select">
+                <option *ngIf="alquiler.local.rubro != ''" value="Sin asignar" disabled selected>Seleccione un rubro para el local...</option>
+                <option *ngIf="alquiler.local.rubro == ''" value="" disabled selected>Seleccione un rubro para el local...</option>
+                <option Value="Comida">Comida</option>
+                <option Value="Ropa">Ropa</option>
+                <option Value="Deportes">Deportes</option>
+                <option Value="Tecnologia">Tecnologia</option>
+                <option Value="Otro">Otro</option>
+            </select>
+        </div>
+
+        <div class="input-field" *ngIf="accion == 'new'">
+            <select [(ngModel)]="alquiler.usuario" name="nombreUsuario" id="nombreUsuario" class="form-select" required>
+                <option value="null" disabled selected>Seleccione el propietario...</option>
+                <option *ngFor="let u of propietarios" [ngValue]="u">{{u.apellido}}, {{u.nombres}} </option>
+            </select>
+        </div>
+
+        <div class="input-field" *ngIf="alquiler.local.costoMes > 0">
+            <h6 class="text-white">Costo de alquiler por Mes</h6>
+            <input [value]="alquiler.local.costoMes | currency:'USD':'symbol':'1.2-2'" required autocomplete="off" type="text"
+                name="costoMesLocalInput" id="costoMesLocalInput" readonly />
+        </div>
+        
+        <div class="input-field" *ngIf="alquiler.costoAlquiler > 0">
+            <h6 class="text-white">Costo de alquiler Total</h6>
+            <input [value]="alquiler.costoAlquiler | currency:'USD':'symbol':'1.2-2'" required autocomplete="off" type="text"
+                name="costoAlquilerInput" id="costoAlquilerInput" readonly />
+        </div>
+
+        <div class="btn-container">
+            <button *ngIf="accion === 'new'" type="submit" class="btn" [disabled]="formAlquiler.invalid"
+                (click)="registrarAlquiler()">
+                Registrar Alquiler
+            </button>
+            <button *ngIf="accion === 'update'" type="button" class="btn" [disabled]="formAlquiler.invalid"
+                (click)="modificarAlquiler(alquiler)">
+                Modificar Alquiler
+            </button>
+            <button class="btn-tabla" *ngIf="accion === 'new'" (click)="verAlquileres()">
+                Ver Alquileres
+            </button>
+        </div>
+
+    </form>
+</div>

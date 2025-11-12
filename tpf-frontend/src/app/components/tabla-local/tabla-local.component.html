@@ -1,0 +1,39 @@
+<div class="container bg-negro-transparente mt-0 my-md-3">
+  <div class="text-white mx-4 py-2">
+    <h3 class="text-center mt-3">Listado de Locales</h3>
+    <button type="button" class="btn btn-success mb-2" (click)="agregarLocal()">Agregar</button>
+  </div>
+  <div class="table-responsive text-white mx-4 py-2">
+    <table class="table table-dark table-hover"  *ngIf="locales.length > 0">
+      <thead>
+        <tr>
+            <th scope="col">Número Local</th>
+            <th scope="col">Nombre Local</th>
+            <th scope="col">Superficie</th>
+            <th scope="col">Habilitado</th>
+            <th scope="col">Costo Mensual</th>
+            <th scope="col">Alquilado</th>
+            <th scope="col">Rubro</th>
+            <th scope="col" class="text-center" colspan="2">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let l of locales">
+          <th scope="row">{{ l.numero }}</th>
+          <th>{{ l.nombre }}</th>
+          <td>{{ l.superficie }}</td>
+          <td>{{ l.habilitado ? "Habilitado" : "No Habilitado" }}</td>
+          <td>{{ l.costoMes }}</td>
+          <td>{{ l.alquilado ? "Alquilado" : "No Alquilado" }}</td>
+          <td>{{ l.rubro }}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-info"(click)="modificarLocal(l.id)"><i class="bi bi-pen-fill"></i></button>
+          </td>
+          <td class="text-start">
+            <button type="button" class="btn btn-danger"(click)="eliminarLocal(l.id)"><i class="bi bi-trash-fill"></i></button>
+          </td> 
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
