@@ -1,1 +1,130 @@
-#docker
+version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tpf_db_d
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d
+      - ./mysql/logs:/var/log/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      timeout: 20s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql-db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mysql-backup
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  db-init:
+    image: mysql:8.0
+    container_name: db-init
+    volumes:
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+    command: >
+      bash -c "
+        echo 'Esperando a MySQL (comprobando conexión)...';
+
+        # Intentar conexión hasta que MySQL responda
+        until mysqladmin ping -h mysql-db -u root -proot --silent; do
+          echo 'MySQL no está listo, reintentando...';
+          sleep 5;
+        done
+
+        echo 'MySQL está listo. Verificando si BD está vacía...';
+
+        # Verificar si hay tablas
+        if ! mysql -h mysql-db -u root -proot -e 'USE tpf_db_d; SHOW TABLES;' | grep -q .; then
+          echo 'BD vacía → Ejecutando init.sql...';
+          mysql -h mysql-db -u root -proot < /docker-entrypoint-initdb.d/init.sql;
+          echo 'Carga completa.';
+        else
+          echo 'BD ya tiene datos → init.sql NO se ejecuta.';
+        fi
+
+        exit 0
+      "
+
+  mysqltuner:
+    image: debian:bullseye-slim
+    container_name: mysqltuner
+    networks:
+      - app-network
+    volumes:
+      - ./mysql/tuning/resultados:/results
+    depends_on:
+      - mysql
+    command: >
+      bash -c "
+        apt-get update -qq &&
+        apt-get install -y -qq mariadb-client perl curl &&
+        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl -o /mysqltuner.pl &&
+        chmod +x /mysqltuner.pl &&
+        echo 'Esperando a MySQL para mysqltuner...' &&
+        sleep 25 &&
+        perl /mysqltuner.pl --host mysql-db --user root --pass root > /results/mysqltuner.txt 2>&1 &&
+        echo 'mysqltuner listo: /results/mysqltuner.txt';
+      "
+
+  percona-toolkit:
+    image: percona/percona-toolkit:latest
+    container_name: percona-toolkit
+    networks:
+      - app-network
+    volumes:
+      - ./mysql/tuning/resultados:/results
+    depends_on:
+      - mysql
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "
+      echo 'Esperando a MySQL para Percona Toolkit...' &&
+      sleep 25 &&
+      echo 'Ejecutando pt-summary (salida /results/pt-summary.txt)...' &&
+      pt-summary > /results/pt-summary.txt 2>&1 ||
+      echo 'pt-summary fallo, revisá conectividad' &&
+      echo 'Listo'
+      "
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
+
+volumes:
+  mysql_data:
