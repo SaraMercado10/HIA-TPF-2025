@@ -1,79 +1,80 @@
-
+# ========================
+#  GENERAL
+# ========================
+# Archivos del sistema
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Archivos temporales y logs
 *.log
 logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+
+# Archivos de entorno (variables sensibles)
+.env
+.env.local
+.env.*.local
+
+# ========================
+#  BACKEND NODE.JS
+# ========================
+node_modules/
+coverage/
+dist/
+build/
+tmp/
+.cache/
+.nyc_output/
+
+# Archivos de test
+*.test.js
+*.spec.js
+
+# ========================
+#  DOCKER Y BACKUPS
+# ========================
+# Volúmenes de MongoDB y backups automáticos
+backups/
+
+# Archivos temporales del contenedor
 *.pid
 *.seed
-*.pid.lock
+*.tar
+*.gz
+*.zip
 
+# ========================
+#  CONFIGURACIONES LOCALES
+# ========================
+# IDEs y editores
 .vscode/
 .idea/
 *.swp
-
-node_modules/
-dist/
-build/
-coverage/
-.env
-.env.*
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-.pm2/
-
-*.tsbuildinfo
-
-frontend/node_modules/
-
-frontend/dist/
-frontend/.angular/
-.angular/
-
-frontend/.npm/
-frontend/*.log
-frontend/.env
-frontend/src/environments/environment.ts
-frontend/src/environments/environment.prod.ts
-
-docker-data/
-mysql-data/
-**/data/
-**/db_data/
-mysql
-
-*.tar
-
-#*.sql
-*.bak
-*.dump
-
-backups/
-scripts/backups/*
-!scripts/backups/backup.sh   # permitimos incluir el script, no los resultados
-
-tmp/
-temp/
-*.tmp
-*.temp
-.cache/
-.cache-loader/
-
-coverage/
-nyc_output/
-junit.xml
-test-results/
-
-*.iml
-*.tgz
-*.orig
-*.rej
-*.swp
 *.swo
+
+# ========================
+#  SEGURIDAD Y CLAVES
+# ========================
+# Certificados o claves privadas
+*.pem
+*.key
+*.crt
+
+# ========================
+#  SISTEMAS DE CI/CD (opcional)
+# ========================
+# Archivos generados por pipelines locales
+.github/workflows/temp/
+.gitlab-ci-local/
+
+# ========================
+#  BACKUPS Y DUMPS
+# ========================
+# Evita subir backups de la base de datos
+*.dump
+*.bak
+*.archive
+backup*.gz

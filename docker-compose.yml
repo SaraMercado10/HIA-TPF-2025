@@ -1,8 +1,40 @@
 version: '3.8'
 
 services:
+  # --- 1. Aplicación Backend ---
+  backend:
+    build:
+      context: ./tpf-backend
+    container_name: tpf-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: tpf_db_d
+    networks:
+      - app-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
 
-  mysql:
+  # --- 2. Aplicación Frontend ---
+  frontend:
+    build:
+      context: ./tpf-frontend
+    container_name: tpf-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  # --- 3. Base de Datos ---
+  mysql-db:
     image: mysql:8.0
     container_name: mysql-db
     restart: always
@@ -10,18 +42,20 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tpf_db_d
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      - ./mysql/data:/var/lib/mysql
-      - ./mysql/conf.d:/etc/mysql/conf.d
-      - ./mysql/logs:/var/log/mysql
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
-      timeout: 20s
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql-db", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 10s
       retries: 10
+      start_period: 120s
 
+  # --- 4. PhpMyAdmin ---
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
@@ -29,12 +63,14 @@ services:
       PMA_HOST: mysql-db
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "8081:80"
+      - "8080:80"
     depends_on:
-      - mysql
+      mysql-db:
+        condition: service_healthy
     networks:
       - app-network
 
+  # --- 5. Servicio de Backup ---
   backup:
     build:
       context: .
@@ -42,89 +78,107 @@ services:
     container_name: mysql-backup
     volumes:
       - ./backups:/backups
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: tpf_db_d
     depends_on:
-      - mysql
+      - mysql-db
     networks:
       - app-network
 
-  db-init:
-    image: mysql:8.0
-    container_name: db-init
+  # --- 6. Prometheus ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
     volumes:
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command: --config.file=/etc/prometheus/prometheus.yml
     networks:
       - app-network
+      - monitoring
     depends_on:
-      - mysql
-    command: >
-      bash -c "
-        echo 'Esperando a MySQL (comprobando conexión)...';
+      - node-exporter
+      - cadvisor
+      - mysqld-exporter
 
-        # Intentar conexión hasta que MySQL responda
-        until mysqladmin ping -h mysql-db -u root -proot --silent; do
-          echo 'MySQL no está listo, reintentando...';
-          sleep 5;
-        done
-
-        echo 'MySQL está listo. Verificando si BD está vacía...';
-
-        # Verificar si hay tablas
-        if ! mysql -h mysql-db -u root -proot -e 'USE tpf_db_d; SHOW TABLES;' | grep -q .; then
-          echo 'BD vacía → Ejecutando init.sql...';
-          mysql -h mysql-db -u root -proot < /docker-entrypoint-initdb.d/init.sql;
-          echo 'Carga completa.';
-        else
-          echo 'BD ya tiene datos → init.sql NO se ejecuta.';
-        fi
-
-        exit 0
-      "
-
-  mysqltuner:
-    image: debian:bullseye-slim
-    container_name: mysqltuner
-    networks:
-      - app-network
+  # --- 7. Grafana ---
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
     volumes:
-      - ./mysql/tuning/resultados:/results
-    depends_on:
-      - mysql
-    command: >
-      bash -c "
-        apt-get update -qq &&
-        apt-get install -y -qq mariadb-client perl curl &&
-        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl -o /mysqltuner.pl &&
-        chmod +x /mysqltuner.pl &&
-        echo 'Esperando a MySQL para mysqltuner...' &&
-        sleep 25 &&
-        perl /mysqltuner.pl --host mysql-db --user root --pass root > /results/mysqltuner.txt 2>&1 &&
-        echo 'mysqltuner listo: /results/mysqltuner.txt';
-      "
-
-  percona-toolkit:
-    image: percona/percona-toolkit:latest
-    container_name: percona-toolkit
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
       - app-network
-    volumes:
-      - ./mysql/tuning/resultados:/results
+      - monitoring
     depends_on:
-      - mysql
-    entrypoint: ["/bin/bash", "-c"]
-    command: >
-      "
-      echo 'Esperando a MySQL para Percona Toolkit...' &&
-      sleep 25 &&
-      echo 'Ejecutando pt-summary (salida /results/pt-summary.txt)...' &&
-      pt-summary > /results/pt-summary.txt 2>&1 ||
-      echo 'pt-summary fallo, revisá conectividad' &&
-      echo 'Listo'
-      "
+      - prometheus
 
+  # --- 8. Node Exporter ---
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    expose:
+      - "9100"
+    networks:
+      - monitoring
+
+  # --- 9. cAdvisor ---
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    expose:
+      - "8080" # usamos el puerto interno correcto
+    ports:
+      - "8081:8080" # visible desde el host si querés acceder
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring
+
+  # --- 10. MySQL Exporter ---
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: mysqld-exporter
+    restart: unless-stopped
+    expose:
+      - "9104"
+    command:
+      - --config.my-cnf=/cfg/config-exporter.cnf
+    volumes:
+      - ./config-exporter.cnf:/cfg/config-exporter.cnf:ro
+    networks:
+      - monitoring
+      - app-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+# --- Redes y Volúmenes ---
 networks:
   app-network:
-    name: app-network
+    driver: bridge
+  monitoring:
     driver: bridge
 
 volumes:
   mysql_data:
+  prometheus-data:
+  grafana-data:
