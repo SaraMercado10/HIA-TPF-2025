@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit{
-  locales : {id:string,logo:SafeUrl,numero:string}[] = [];
+  locales : {_id:string,logo:SafeUrl,numero:string}[] = [];
   nombre: string = "";
 
   constructor(
@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit{
   cargarListaLocales(locales: Local[]){
     locales.forEach(local => {
       let logo:SafeUrl = this.domSanitizer.bypassSecurityTrustUrl(local.logo);
-      this.locales.push({id:local.id,logo: logo , numero: local.numero});
+      this.locales.push({_id:local._id,logo: logo , numero: local.numero});
     });
   }
   verLocal(id: string):void{

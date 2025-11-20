@@ -38,7 +38,7 @@
                             detalles..</a></td>
                     <td>{{ a.local.rubro }}</td>
                     <td *ngIf=" userPerfil() != 'propietario'" class="text-end">
-                        <button type="button" class="btn btn-info" (click)="modificarAlquiler(a.id)"><i
+                        <button type="button" class="btn btn-info" (click)="modificarAlquiler(a._id)"><i
                                 class="bi bi-pen-fill"></i></button>
                     </td>
                     <td *ngIf=" userPerfil() != 'propietario'" class="text-start">
@@ -46,7 +46,7 @@
                                 class="bi bi-trash-fill"></i></button>
                     </td>
                     <td *ngIf=" userPerfil() == 'propietario'" class="text-end">
-                        <button type="button" class="btn btn-info text-white" (click)="verDetalle(a.id)">Ver</button>
+                        <button type="button" class="btn btn-info text-white" (click)="verDetalle(a._id)">Ver</button>
                     </td>
                 </tr>
             </tbody>

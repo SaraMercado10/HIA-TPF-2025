@@ -90,6 +90,6 @@ export class NovedadService {
       })
     }
     let body:any = JSON.stringify(novedad);
-    return this._http.put(this.url+'/'+novedad.id, body, httpOptions)
+    return this._http.put(this.url+'/'+novedad._id, body, httpOptions)
   }
 }

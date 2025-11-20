@@ -27,10 +27,10 @@
           <td>{{ l.alquilado ? "Alquilado" : "No Alquilado" }}</td>
           <td>{{ l.rubro }}</td>
           <td class="text-end">
-            <button type="button" class="btn btn-info"(click)="modificarLocal(l.id)"><i class="bi bi-pen-fill"></i></button>
+            <button type="button" class="btn btn-info"(click)="modificarLocal(l._id)"><i class="bi bi-pen-fill"></i></button>
           </td>
           <td class="text-start">
-            <button type="button" class="btn btn-danger"(click)="eliminarLocal(l.id)"><i class="bi bi-trash-fill"></i></button>
+            <button type="button" class="btn btn-danger"(click)="eliminarLocal(l._id)"><i class="bi bi-trash-fill"></i></button>
           </td> 
         </tr>
       </tbody>

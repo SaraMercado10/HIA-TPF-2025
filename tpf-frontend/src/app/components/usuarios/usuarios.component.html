@@ -55,11 +55,11 @@
           <td>{{u.email}}</td>
           <td>{{u.telefono}}</td>
           <td class="text-end">
-            <button type="button" class="btn btn-info" (click)="modificar(u.id)" [disabled]="u.perfil == 'root'"><i
+            <button type="button" class="btn btn-info" (click)="modificar(u._id)" [disabled]="u.perfil == 'root'"><i
                 class="bi bi-pen-fill"></i></button>
           </td>
           <td class="text-start">
-            <button type="button" class="btn btn-danger" (click)="eliminar(u.id)" [disabled]="u.perfil == 'root'"><i
+            <button type="button" class="btn btn-danger" (click)="eliminar(u._id)" [disabled]="u.perfil == 'root'"><i
                 class="bi bi-trash-fill"></i></button>
           </td>
         </tr>

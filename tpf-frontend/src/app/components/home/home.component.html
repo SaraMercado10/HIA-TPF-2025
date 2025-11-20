@@ -40,7 +40,7 @@
     <!--Seccion Locales-->
     <div class="row pb-4 px-3">
       <div class="col-6 col-md-3 col-lg-2 mt-4" *ngFor="let l of locales">
-        <a (click)="verLocal(l.id)"><img [src]="l.logo" class="d-block w-100 rounded" alt="Local: {{l.numero}}"></a>
+        <a (click)="verLocal(l._id)"><img [src]="l.logo" class="d-block w-100 rounded" alt="Local: {{l.numero}}"></a>
       </div>
     </div>
 </div>

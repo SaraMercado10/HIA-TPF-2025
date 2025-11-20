@@ -1,13 +1,12 @@
 import { Alquiler } from "./alquiler";
 
 export class Novedad {
-    id!: string;
+    _id!: string;
     alquiler: Alquiler = new Alquiler();
-    alquilerId!: string;
-    descripcion: string = '';
-    estado: string = '';
+    descripcion: String = '';
+    estado: String = '';
 
-    constructor(alquiler?: Alquiler, descripcion?: string, estado?: string) {
+    constructor(alquiler?: Alquiler, descripcion?: String, estado?: String) {
         if(alquiler)
             this.alquiler = alquiler;
         if(descripcion)
@@ -15,6 +14,7 @@ export class Novedad {
         if(estado)
             this.estado = estado;
     }
+
     // Getter y Setter
     setEstado(estadoNuevo: string) {
         if (estadoNuevo) {

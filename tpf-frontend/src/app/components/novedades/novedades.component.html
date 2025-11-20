@@ -17,8 +17,8 @@
         <div *ngIf="formHabilitado">
           <form>
             <div class="form-floating mb-3" *ngIf="!isModificar">
-              <select class="form-select" id="floatingSelect" aria-label="Floating label select example" required name="alquilerId" [(ngModel)]="alquilerId">
-                <option *ngFor="let alquiler of alquileres" [ngValue]="alquiler.id">{{alquiler.local.numero}} - {{alquiler.local.nombre}}</option>
+              <select class="form-select" id="floatingSelect" aria-label="Floating label select example" required name="usuario" [(ngModel)]="novedad.alquiler">
+                <option *ngFor="let alquiler of alquileres" [ngValue]="alquiler">{{alquiler.local.numero}} - {{alquiler.local.nombre}}</option>
               </select>
               <label for="floatingSelect">Seleccione un Local</label>
             </div>
@@ -74,7 +74,7 @@
                   <button type="button" class="btn btn-info"(click)="modificar(n)"><i class="bi bi-pen-fill"></i></button>
                 </td>
                 <td class="text-start" *ngIf=" userPerfil() != 'propietario'">
-                  <button type="button" class="btn btn-danger"(click)="eliminar(n.id)"><i class="bi bi-trash-fill"></i></button>
+                  <button type="button" class="btn btn-danger"(click)="eliminar(n._id)"><i class="bi bi-trash-fill"></i></button>
                 </td>   
               </tr>      
             </tbody>

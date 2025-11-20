@@ -60,16 +60,15 @@ export class UsuarioFormComponent {
     this.router.navigate(['/usuarios']);
   }
 
-  cargarPropietario(id: string): void {
+  cargarPropietario(id:string):void{
+    console.log(id);
+    
     this.usuarioService.getById(id).subscribe(
-      (result) => {
-        console.log(result); // Verifica que aquí ves el objeto esperado
-        this.propietario = result; // Asigna directamente el objeto recibido
-      },
-      (error) => {
-        console.error('Error al cargar el propietario:', error);
-      }
-    );
+      result => {        
+        Object.assign(this.propietario, result[0]);            
+        
+      });
+      
   }
 
   registrarPropietario(): void {
