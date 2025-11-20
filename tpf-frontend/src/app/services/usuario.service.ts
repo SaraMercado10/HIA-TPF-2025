@@ -76,7 +76,7 @@ export class UsuarioService {
       })
     }
     let body: any = JSON.stringify(propietario);
-    return this._http.put(this.hostBase + propietario.id, body, http)
+    return this._http.put(this.hostBase + propietario._id, body, http)
   }
 
   public login(usuario: String, password: String): Observable<any> {

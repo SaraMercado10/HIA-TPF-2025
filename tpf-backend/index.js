@@ -33,7 +33,15 @@ dotenv.config();
 
 // Middlewares
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:4200' }));
+app.use(cors({
+  origin: [
+    'http://localhost',
+    'http://localhost:8080',
+    'http://localhost:4200',
+    'http://backend:3000' // si ambos están en docker
+  ],
+  credentials: true
+}));
 
 // Conexión a la base de datos
 // Función para conectar con reintentos

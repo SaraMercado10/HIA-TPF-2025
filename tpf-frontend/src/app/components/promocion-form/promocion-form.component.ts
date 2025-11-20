@@ -83,7 +83,6 @@ export class PromocionFormComponent {
     this.promocion.fechaInicio = new Date(this.fechaInicio);
     this.promocion.fechaFin = new Date(this.fechaFin);
     if (this.promocion.fechaFin > this.promocion.fechaInicio) {
-      this.promocion.alquilerId = this.alquiler.id; // Solo pasamos el ID del alquiler
       this.promocionService.save(this.promocion).subscribe(
         (result: any) => {
           this.toastr.success('Promoción Guardada');

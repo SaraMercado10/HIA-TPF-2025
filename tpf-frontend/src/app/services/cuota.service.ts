@@ -38,7 +38,7 @@ export class CuotaService {
       })
     }
     let body: any = JSON.stringify(cuota);
-    return this._http.put(this.url+'/:' + cuota.id, body, httpOptions)
+    return this._http.put(this.url+'/:' + cuota._id, body, httpOptions)
   }
 
   public obtenerCuotaById(id: string): Observable<any> {

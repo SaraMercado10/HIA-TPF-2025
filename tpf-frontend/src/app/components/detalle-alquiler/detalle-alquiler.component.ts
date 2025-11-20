@@ -184,7 +184,7 @@ export class DetalleAlquilerComponent implements OnInit {
   }
 
   pagarCuota() {
-    this.mpService.getPagoLink(this.proximaCuotaAPagar.monto, this.alquiler.id).subscribe(
+    this.mpService.getPagoLink(this.proximaCuotaAPagar.monto, this.alquiler._id).subscribe(
       result => {
         window.location.href = result.init_point;
       }
@@ -197,7 +197,7 @@ export class DetalleAlquilerComponent implements OnInit {
     this.proximaCuotaAPagar.fechaPago = new Date();
     this.proximaCuotaAPagar.cuponQr = "https://www.mercadopago.com.ar/tools/receipt-view/"+this.idTrasnsaccion;
 
-    this.alquilerService.actualizarCuota(this.alquiler.id, this.proximaCuotaAPagar.id, this.proximaCuotaAPagar).subscribe(
+    this.alquilerService.actualizarCuota(this.alquiler._id, this.proximaCuotaAPagar._id, this.proximaCuotaAPagar).subscribe(
       res => {
         this.toastr.success("Pago realizado");
         this.router.navigate(['alquiler-detalle/', this.idAlquiler]);
@@ -317,7 +317,7 @@ export class DetalleAlquilerComponent implements OnInit {
     this.proximaCuotaAPagar.pagado = true;
     this.proximaCuotaAPagar.medioPago = 'Paypal';
     this.proximaCuotaAPagar.fechaPago = new Date();
-    this.alquilerService.actualizarCuota(this.idAlquiler, this.proximaCuotaAPagar.id, this.proximaCuotaAPagar).subscribe(
+    this.alquilerService.actualizarCuota(this.idAlquiler, this.proximaCuotaAPagar._id, this.proximaCuotaAPagar).subscribe(
       (response) => {
         console.log('Cuota actualizada correctamente:', response);
         this.status = "";
@@ -392,7 +392,7 @@ export class DetalleAlquilerComponent implements OnInit {
       (result: any) => {
         Object.assign(alquiler, result);
         cuota.monto = alquiler.local.costoMes;
-        this.alquilerService.agregarCuota(alquiler.id, cuota).subscribe(
+        this.alquilerService.agregarCuota(alquiler._id, cuota).subscribe(
           (result) => {
             console.log(result);
           },

@@ -56,7 +56,7 @@ export class PromocionService {
       })
     }
     let body: any = JSON.stringify(promocion);
-    return this._http.put(this.url+'/' + promocion.id, body, httpOptions);
+    return this._http.put(this.url+'/' + promocion._id, body, httpOptions);
   }
 
   public delete(id: string): Observable<any>{

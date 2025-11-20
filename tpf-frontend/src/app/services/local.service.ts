@@ -60,7 +60,7 @@ export class LocalService {
       })
     }
     let body:any = JSON.stringify(local);
-    return this._http.put(this.url+'/' +local.id, body, httpOptions)
+    return this._http.put(this.url+'/' +local._id, body, httpOptions)
   }
 
   public obtenerLocalPorNombre(nombreLocal: string):Observable<any>{

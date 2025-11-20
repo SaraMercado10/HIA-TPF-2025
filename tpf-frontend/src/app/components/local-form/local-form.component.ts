@@ -123,7 +123,6 @@ export class LocalFormComponent implements OnInit{
   }
 
   modificarLocal(localModificado: Local) {
-    console.log("Local a modificar:", localModificado);
     this.localService.modificarLocal(localModificado).subscribe(
       (result) => {
         if (result.status == 1) {

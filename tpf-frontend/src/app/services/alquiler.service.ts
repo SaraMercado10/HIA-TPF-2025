@@ -62,7 +62,7 @@ export class AlquilerService {
       })
     }
     let body: any = JSON.stringify(alquiler);
-    return this._http.put(this.url+'/' + alquiler.id, body, httpOptions)
+    return this._http.put(this.url+'/' + alquiler._id, body, httpOptions)
   }
 
   public obtenerAlquileresByFecha(desde: Date, hasta: Date): Observable<any> {

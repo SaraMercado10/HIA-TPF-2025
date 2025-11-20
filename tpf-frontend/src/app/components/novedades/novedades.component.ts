@@ -23,7 +23,7 @@ export class NovedadesComponent implements OnInit{
   formHabilitado: boolean = false;
   
   novedad: Novedad = new Novedad();
-  alquilerId: string = '';  // Variable auxiliar para el alquilerId
+
   descripcion = new FormControl('',Validators.required);
 
   constructor(
@@ -35,85 +35,47 @@ export class NovedadesComponent implements OnInit{
 
   ngOnInit(): void {
     this.cargarNovedades();
-    //this.novedad = new Novedad();
   }
 //TABLA ALQUILERES
-cargarNovedades(): void {
-  this.novedades = []; // Limpiar la lista antes de cargar
-  console.log("id loggeg");
-  console.log(this.loginService.idLogged()!);
-  this.novedadService.getAll().subscribe(
-    (result: any) => {
-      console.log(this.userPerfil());
-      console.log(result);
+  /**Carga la lista de novedades, sin las novedades archivadas*/
+  cargarNovedades():void{
+      this.novedadService.getAll().subscribe(
+        (result) => {
+          if(this.userPerfil()==='propietario')
+            this.cargarNovedadesByUsuario(result);
+          else
+            this.novedades=result;
+        },
+        (error) => {
+          console.log(error)
+        }
+      )
+  }
 
-      if (this.userPerfil() === 'propietario') {
-        // Filtrar novedades solo del propietario
-        this.cargarNovedadesByUsuario(result);
-      } else {
-        // Mostrar todas las novedades
-        this.novedades = result.map((element: any) => {
-          let novedad = new Novedad();  // Crear una nueva instancia de Novedad
-          Object.assign(novedad, element); // Asignar los valores del elemento a la instancia
-          return novedad;
-        });
+  cargarNovedadesByUsuario(result: any):void{
+    this.novedades=[];
+    for(let i=0;i< result.length;i++){
+      if(result[i].alquiler.usuario?._id===this.userId()!){
+        this.novedades.push(result[i]);
       }
-    },
-    (error: any) => {
-      console.log(error);
     }
-  );
-}
-
-cargarNovedadesByUsuario(result: any): void {
-  console.log(typeof this.loginService.idLogged()!);
-  console.log("ID logueado:", this.loginService.idLogged());
-  console.log(typeof this.loginService.idLogged());
-  this.novedades = result.filter((novedad: any) => {
-    console.log("Novedad usuario ID:", novedad.alquiler?.usuario?.id);console.log(typeof novedad.alquiler?.usuario?.id);
-    return String(novedad.alquiler?.usuario?.id) === this.loginService.idLogged();
-  }).map((element: any) => {
-    let novedad = new Novedad(); 
-    Object.assign(novedad, element); 
-    return novedad;
-  });
-  console.log("Novedades filtradas:", this.novedades);
-}  
-
+    console.log(this.novedades);
+  }
 
 /**Carga la lista de alquileres */
   cargarAlquileres(): void{
-    this.alquileres = new Array();
-    console.log(this.loginService.idLogged()!);
-    if(this.userPerfil() == 'propietario'){
-      this.alquilerService.obtenerAlquilerByUsuario(this.loginService.idLogged()!).subscribe(
-        (result: any) => {
-          let vAlquiler: Alquiler = new Alquiler();
-          result.forEach((element: any) => {
-            Object.assign(vAlquiler, element);
-            this.alquileres.push(vAlquiler);
-            vAlquiler = new Alquiler();
-          });
-        },
-        (error: any) => {
-          console.log(error);
-        }
-      )
-    }else{
-      this.alquilerService.obtenerAlquileres().subscribe(
-        (result: any) => {
-          let vAlquiler: Alquiler = new Alquiler();
-          result.forEach((element: any) => {
-            Object.assign(vAlquiler, element);
-            this.alquileres.push(vAlquiler);
-            vAlquiler = new Alquiler();
-          });
-        },
-        (error: any) => {
-          console.log(error);
-        }
-      );
-    }
+    this.alquilerService.obtenerAlquileres().subscribe(
+      (result)=>{
+        if(this.userPerfil()==='propietario')
+          this.cargarAlquileresByUsuario(result);
+          else
+          this.alquileres=result; 
+
+      },
+      (error)=>{
+        console.log(error)
+      }
+    )
   }
 
   cargarAlquileresByUsuario(result: any):void{
@@ -133,15 +95,6 @@ cargarNovedadesByUsuario(result: any): void {
 
   /**Registra una nueva novedad */
   guardar(): void {
-    console.log("this.novedad.descripcion");
-    console.log(this.novedad.descripcion)
-    console.log("this.novedad");
-    console.log(this.novedad)
-    this.novedad.alquilerId = this.alquilerId; // Asignamos el alquilerId a la novedad
-    console.log("this.novedad.alquilerId")
-    console.log(this.novedad.alquilerId);
-    console.log("this.alquilerId")
-    console.log(this.alquilerId);
     if(this.userPerfil()==='propietario')
       this.novedad.setEstado('Pendiente');
     this.novedadService.add(this.novedad).subscribe(
@@ -166,7 +119,6 @@ cargarNovedadesByUsuario(result: any): void {
     this.formHabilitado=false;
     this.cargarNovedades();
     this.novedad=new Novedad();
-    this.alquilerId = ''; // Limpiar alquilerId
   }
 
   /**Modifica una novedad */
@@ -174,18 +126,15 @@ cargarNovedadesByUsuario(result: any): void {
     this.isModificar = true;
     this.formHabilitado = true;
     this.novedad = novedad;
-    this.alquilerId = novedad.alquilerId; // Asignar alquilerId
   }
 
   /**Actualiza una novedad */
   actualizar(): void {
-    this.alquileres=[];
     this.novedadService.update(this.novedad).subscribe(
       result => {
         if(result.status==1){
-          this.toastr.success("Novedad actualizada");        
-          this.novedades = [];        
-          //this.cargarNovedades();
+          this.toastr.success("Novedad actualizada");
+          this.cargarNovedades();
           this.reset();
         }
       },
