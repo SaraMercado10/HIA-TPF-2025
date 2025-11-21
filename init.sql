@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS `tpf_db_d`;
 CREATE DATABASE IF NOT EXISTS `tpf_db_d`;
 CREATE USER 'exporter_user'@'%' IDENTIFIED BY 'exporter_pass';
 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter_user'@'%';
