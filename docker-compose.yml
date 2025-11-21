@@ -84,7 +84,8 @@ services:
       DB_PASSWORD: root
       DB_NAME: tpf_db_d
     depends_on:
-      - mysql-db
+      mysql-db:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -170,6 +171,39 @@ services:
     depends_on:
       mysql-db:
         condition: service_healthy
+
+  # 11. MySqlTuner
+  mysqltuner:
+    image: debian:bullseye-slim
+    container_name: mysqltuner
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y mariadb-client perl curl &&
+        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl > /mysqltuner.pl &&
+        chmod +x /mysqltuner.pl &&
+        sleep 15 &&
+        perl /mysqltuner.pl --host mysql --user root --pass root
+      "    
+# --- 12. WatchTower (Despliegue Continuo) ---
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower 
+    restart: unless-stopped
+    volumes:
+     # Permite a Watchtower acceder y controlar el demonio de Docker
+     - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30 --cleanup 
+    environment:
+     # 1. Credenciales para acceder a Docker Hub y hacer pull de tus imágenes privadas
+     - DOCKER_USERNAME=${DOCKER_USERNAME} 
+     - DOCKER_PASSWORD=${DOCKER_PASSWORD}
+     # Monitorea los contenedores de la aplicación:
+     - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
 
 # --- Redes y Volúmenes ---
 networks:
