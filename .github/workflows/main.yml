@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Login a Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+
+    - name: Build and Tag BACKEND image
+      run: |
+        BACKEND_IMAGE=chechi20/my-node-app
+        COMMIT_TAG=${{ github.sha }}
+        
+        # Construye la imagen usando el Dockerfile en el directorio actual (raíz)
+        # NOTA: Asegúrate de que tu Dockerfile de Backend esté en la raíz o ajusta la ruta.
+        # Basado en tu primer docker-compose, estaba en ./tpf-backend, vamos a usar ese contexto:
+        docker build -t $BACKEND_IMAGE:$COMMIT_TAG ./tpf-backend
+        docker tag $BACKEND_IMAGE:$COMMIT_TAG $BACKEND_IMAGE:latest
+
+   
+    - name: Build and Tag FRONTEND image
+      run: |
+        FRONTEND_IMAGE=chechi20/my-angular-app # <-- Nuevo nombre para el Frontend
+        COMMIT_TAG=${{ github.sha }}
+        
+        # Construye la imagen usando el Dockerfile en el directorio ./tpf-frontend
+        docker build -t $FRONTEND_IMAGE:$COMMIT_TAG ./tpf-frontend
+        docker tag $FRONTEND_IMAGE:$COMMIT_TAG $FRONTEND_IMAGE:latest
+
+
+   
+    - name: Push BACKEND image to Docker Hub
+      run: |
+        BACKEND_IMAGE=chechi20/my-node-app
+        COMMIT_TAG=${{ github.sha }}
+        
+        docker push $BACKEND_IMAGE:$COMMIT_TAG
+        docker push $BACKEND_IMAGE:latest
+    
+   
+    - name: Push FRONTEND image to Docker Hub
+      run: |
+        FRONTEND_IMAGE=chechi20/my-angular-app
+        COMMIT_TAG=${{ github.sha }}
+        
+        docker push $FRONTEND_IMAGE:$COMMIT_TAG
+        docker push $FRONTEND_IMAGE:latest
