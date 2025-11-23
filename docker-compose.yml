@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # --- 1. Aplicación Backend ---
+
   backend:
     build:
       context: ./tpf-backend
@@ -20,7 +20,6 @@ services:
       mysql-db:
         condition: service_healthy
 
-  # --- 2. Aplicación Frontend ---
   frontend:
     build:
       context: ./tpf-frontend
@@ -33,7 +32,6 @@ services:
     depends_on:
       - backend
 
-  # --- 3. Base de Datos ---
   mysql-db:
     image: mysql:8.0
     container_name: mysql-db
@@ -42,20 +40,18 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tpf_db_d
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d
+      - ./mysql/logs:/var/log/mysql
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "mysql-db", "-u", "root", "-proot"]
-      interval: 5s
-      timeout: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      timeout: 20s
       retries: 10
-      start_period: 120s
 
-  # --- 4. PhpMyAdmin ---
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
@@ -63,14 +59,12 @@ services:
       PMA_HOST: mysql-db
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-db
     networks:
       - app-network
 
-  # --- 5. Servicio de Backup ---
   backup:
     build:
       context: .
@@ -78,18 +72,85 @@ services:
     container_name: mysql-backup
     volumes:
       - ./backups:/backups
-    environment:
-      DB_HOST: mysql-db
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: tpf_db_d
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-db
     networks:
       - app-network
 
-  # --- 6. Prometheus ---
+  db-init:
+    image: mysql:8.0
+    container_name: db-init
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    depends_on:
+      - mysql-db
+    command: >
+      bash -c "
+        echo 'Esperando a MySQL (comprobando conexión)...';
+
+        # Intentar conexión hasta que MySQL responda
+        until mysqladmin ping -h mysql-db -u root -proot --silent; do
+          echo 'MySQL no está listo, reintentando...';
+          sleep 5;
+        done
+
+        echo 'MySQL está listo. Verificando si BD está vacía...';
+
+        # Verificar si hay tablas
+        if ! mysql -h mysql-db -u root -proot -e 'USE tpf_db_d; SHOW TABLES;' | grep -q .; then
+          echo 'BD vacía → Ejecutando init.sql...';
+          mysql -h mysql-db -u root -proot < /docker-entrypoint-initdb.d/init.sql;
+          echo 'Carga completa.';
+        else
+          echo 'BD ya tiene datos → init.sql NO se ejecuta.';
+        fi
+
+        exit 0
+      "
+
+  mysqltuner:
+    image: debian:bullseye-slim
+    container_name: mysqltuner
+    networks:
+      - app-network
+    volumes:
+      - ./mysql/tuning/resultados:/results
+    depends_on:
+      - mysql-db
+    command: >
+      bash -c "
+        apt-get update -qq &&
+        apt-get install -y -qq mariadb-client perl curl &&
+        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl -o /mysqltuner.pl &&
+        chmod +x /mysqltuner.pl &&
+        echo 'Esperando a MySQL para mysqltuner...' &&
+        sleep 25 &&
+        perl /mysqltuner.pl --host mysql-db --user root --pass root > /results/mysqltuner.txt 2>&1 &&
+        echo 'mysqltuner listo: /results/mysqltuner.txt';
+      "
+
+  percona-toolkit:
+    image: percona/percona-toolkit:latest
+    container_name: percona-toolkit
+    networks:
+      - app-network
+    volumes:
+      - ./mysql/tuning/resultados:/results
+    depends_on:
+      - mysql-db
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "
+      echo 'Esperando a MySQL para Percona Toolkit...' &&
+      sleep 25 &&
+      echo 'Ejecutando pt-summary (salida /results/pt-summary.txt)...' &&
+      pt-summary > /results/pt-summary.txt 2>&1 ||
+      echo 'pt-summary fallo, revisá conectividad' &&
+      echo 'Listo'
+      "
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -108,7 +169,6 @@ services:
       - cadvisor
       - mysqld-exporter
 
-  # --- 7. Grafana ---
   grafana:
     image: grafana/grafana-oss:latest
     container_name: grafana
@@ -127,7 +187,6 @@ services:
     depends_on:
       - prometheus
 
-  # --- 8. Node Exporter ---
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -137,15 +196,14 @@ services:
     networks:
       - monitoring
 
-  # --- 9. cAdvisor ---
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
     expose:
-      - "8080" # usamos el puerto interno correcto
+      - "8080" 
     ports:
-      - "8081:8080" # visible desde el host si querés acceder
+      - "8082:8080" 
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
@@ -154,7 +212,6 @@ services:
     networks:
       - monitoring
 
-  # --- 10. MySQL Exporter ---
   mysqld-exporter:
     image: prom/mysqld-exporter:latest
     container_name: mysqld-exporter
@@ -172,24 +229,6 @@ services:
       mysql-db:
         condition: service_healthy
 
-  # 11. MySqlTuner
-  mysqltuner:
-    image: debian:bullseye-slim
-    container_name: mysqltuner
-    depends_on:
-      mysql-db:
-        condition: service_healthy
-    networks:
-      - app-network
-    command: >
-      bash -c "
-        apt-get update && apt-get install -y mariadb-client perl curl &&
-        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl > /mysqltuner.pl &&
-        chmod +x /mysqltuner.pl &&
-        sleep 15 &&
-        perl /mysqltuner.pl --host mysql --user root --pass root
-      "    
-# --- 12. WatchTower (Despliegue Continuo) ---
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower 
@@ -205,7 +244,6 @@ services:
      # Monitorea los contenedores de la aplicación:
      - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
 
-# --- Redes y Volúmenes ---
 networks:
   app-network:
     driver: bridge
