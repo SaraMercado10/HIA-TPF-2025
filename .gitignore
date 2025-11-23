@@ -29,6 +29,8 @@ tmp/
 .cache/
 .nyc_output/
 
+mysql
+
 # Archivos de test
 *.test.js
 *.spec.js
