@@ -17,7 +17,7 @@ services:
     networks:
       - app-network
     depends_on:
-      mysql-db:
+      mysql-maestro:
         condition: service_healthy
 
   frontend:
@@ -32,25 +32,62 @@ services:
     depends_on:
       - backend
 
-  mysql-db:
+  mysql-maestro:
     image: mysql:8.0
-    container_name: mysql-db
+    container_name: mysql-maestro
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tpf_db_d
-    ports:
-      - "3306:3306"
     volumes:
-      - ./mysql/data:/var/lib/mysql
+      - ./mysql/data/maestro:/var/lib/mysql
       - ./mysql/conf.d:/etc/mysql/conf.d
-      - ./mysql/logs:/var/log/mysql
+      - ./mysql/logs/maestro:/var/log/mysql
+    ports:
+      - "3306:3306" 
+    command: >
+      --server-id=1
+      --log-bin=mysql-bin
+      --binlog-format=ROW
+      --gtid_mode=ON
+      --enforce_gtid_consistency=ON
+      --log-slave-updates=ON
+      --read_only=OFF
     networks:
-      - app-network
+      app-network:
+        aliases:
+          - mysql-db  
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       timeout: 20s
       retries: 10
+
+
+  mysql-esclavo:
+    image: mysql:8.0
+    container_name: mysql-esclavo
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tpf_db_d
+    volumes:
+      - ./mysql/data/esclavo:/var/lib/mysql
+      - ./mysql/logs/esclavo:/var/log/mysql
+      - ./scripts/setup-replication.sh:/docker-entrypoint-initdb.d/setup-replication.sh
+    command: >
+      --server-id=2
+      --log-bin=mysql-bin
+      --relay-log=relay-bin
+      --read-only=ON
+      --gtid_mode=ON
+      --enforce_gtid_consistency=ON
+      --log-slave-updates=ON
+      --skip-host-cache
+      --skip-name-resolve
+    depends_on:
+      - mysql-maestro
+    networks:
+      - app-network    
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -61,7 +98,7 @@ services:
     ports:
       - "8081:80"
     depends_on:
-      - mysql-db
+      - mysql-maestro
     networks:
       - app-network
 
@@ -73,7 +110,7 @@ services:
     volumes:
       - ./backups:/backups
     depends_on:
-      - mysql-db
+      - mysql-maestro
     networks:
       - app-network
 
@@ -85,7 +122,7 @@ services:
     networks:
       - app-network
     depends_on:
-      - mysql-db
+      - mysql-maestro
     command: >
       bash -c "
         echo 'Esperando a MySQL (comprobando conexión)...';
@@ -118,7 +155,7 @@ services:
     volumes:
       - ./mysql/tuning/resultados:/results
     depends_on:
-      - mysql-db
+      - mysql-maestro
     command: >
       bash -c "
         apt-get update -qq &&
@@ -139,7 +176,7 @@ services:
     volumes:
       - ./mysql/tuning/resultados:/results
     depends_on:
-      - mysql-db
+      - mysql-maestro
     entrypoint: ["/bin/bash", "-c"]
     command: >
       "
@@ -226,7 +263,7 @@ services:
       - monitoring
       - app-network
     depends_on:
-      mysql-db:
+      mysql-maestro:
         condition: service_healthy
 
   watchtower:
@@ -251,6 +288,7 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:
+  #mysql_data:
   prometheus-data:
   grafana-data:
+
