@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-
   backend:
     build:
       context: ./tpf-backend
@@ -44,7 +43,7 @@ services:
       - ./mysql/conf.d:/etc/mysql/conf.d
       - ./mysql/logs/maestro:/var/log/mysql
     ports:
-      - "3306:3306" 
+      - "3308:3306"
     command: >
       --server-id=1
       --log-bin=mysql-bin
@@ -61,7 +60,6 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       timeout: 20s
       retries: 10
-
 
   mysql-esclavo:
     image: mysql:8.0
@@ -126,16 +124,11 @@ services:
     command: >
       bash -c "
         echo 'Esperando a MySQL (comprobando conexión)...';
-
-        # Intentar conexión hasta que MySQL responda
         until mysqladmin ping -h mysql-db -u root -proot --silent; do
           echo 'MySQL no está listo, reintentando...';
           sleep 5;
         done
-
         echo 'MySQL está listo. Verificando si BD está vacía...';
-
-        # Verificar si hay tablas
         if ! mysql -h mysql-db -u root -proot -e 'USE tpf_db_d; SHOW TABLES;' | grep -q .; then
           echo 'BD vacía → Ejecutando init.sql...';
           mysql -h mysql-db -u root -proot < /docker-entrypoint-initdb.d/init.sql;
@@ -143,7 +136,6 @@ services:
         else
           echo 'BD ya tiene datos → init.sql NO se ejecuta.';
         fi
-
         exit 0
       "
 
@@ -187,7 +179,6 @@ services:
       echo 'pt-summary fallo, revisá conectividad' &&
       echo 'Listo'
       "
-
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -271,16 +262,53 @@ services:
     container_name: watchtower 
     restart: unless-stopped
     volumes:
-     # Permite a Watchtower acceder y controlar el demonio de Docker
-     - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 30 --cleanup 
     environment:
-     # 1. Credenciales para acceder a Docker Hub y hacer pull de tus imágenes privadas
-     - DOCKER_USERNAME=${DOCKER_USERNAME} 
-     - DOCKER_PASSWORD=${DOCKER_PASSWORD}
-     # Monitorea los contenedores de la aplicación:
-     - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
+      - DOCKER_USERNAME=${DOCKER_USERNAME} 
+      - DOCKER_PASSWORD=${DOCKER_PASSWORD}
+      - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
 
+  glpi:
+    image: glpi/glpi:latest
+    container_name: glpi_app
+    restart: unless-stopped
+    volumes:
+      - ./storage/glpi:/var/glpi:rw
+    environment:
+      - GLPI_DB_HOST=glpi-db
+      - GLPI_DB_NAME=${GLPI_DB_NAME}
+      - GLPI_DB_USER=${GLPI_DB_USER}
+      - GLPI_DB_PASSWORD=${GLPI_DB_PASSWORD}
+    depends_on:
+      glpi-db:
+        condition: service_healthy
+    ports:
+      - "8090:80"
+    networks:
+      - app-network
+
+  glpi-db:
+    image: mysql:8.0
+    container_name: glpi_db
+    restart: unless-stopped
+    volumes:
+       - ./storage/glpi_mysql:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${GLPI_DB_NAME}
+      MYSQL_USER: ${GLPI_DB_USER}
+      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+    networks:
+      - app-network
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3307:3306"
 networks:
   app-network:
     driver: bridge
@@ -291,4 +319,3 @@ volumes:
   #mysql_data:
   prometheus-data:
   grafana-data:
-
