@@ -275,6 +275,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./storage/glpi:/var/glpi:rw
+      - ./glpi_init/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - GLPI_DB_HOST=glpi-db
       - GLPI_DB_NAME=${GLPI_DB_NAME}

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models_sql/Usuario'); // Asegúrate de importar el modelo correctamente
+const Sequelize = require('sequelize'); // ✅ CORRECCIÓN: Importar la librería Sequelize para acceder a 'Op'
 const usuarioCtrl = {};
 
 usuarioCtrl.save = async (req, res) => {
@@ -74,6 +75,7 @@ usuarioCtrl.findByFiltros = async (req, res) => {
     try {
         const filter = {};
 
+        // ESTA LÍNEA AHORA FUNCIONARÁ GRACIAS A LA IMPORTACIÓN DE Sequelize
         if (req.body.usuario) filter.usuario = { [Sequelize.Op.iLike]: `%${req.body.usuario}%` }; // Buscar sin importar mayúsculas/minúsculas
         if (req.body.perfil) filter.perfil = req.body.perfil;
         if (req.body.soloActivos) filter.activo = true;
@@ -142,6 +144,8 @@ usuarioCtrl.loginUsuario = async (req, res) => {
         const { usuario, password } = req.body;
         const user = await Usuario.findOne({ where: { usuario, password } });
 
+        // Es importante notar que si la base de datos no tiene el usuario o la contraseña es incorrecta,
+        // este controlador devuelve 404, aunque lo correcto en seguridad sería 401 (Unauthorized).
         if (!user) {
             return res.status(404).json({
                 status: '0',
