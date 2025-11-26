@@ -309,13 +309,76 @@ services:
       retries: 10
     ports:
       - "3307:3306"
+
+  nextcloud-db:
+    image: mysql:8.0
+    container_name: nextcloud_db
+    restart: unless-stopped
+    volumes:
+     - nextcloud-db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: nextcloud_db
+      MYSQL_USER: nextcloud_user
+      MYSQL_PASSWORD: nextcloud36
+    networks:
+     - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# --- Nextcloud App ---
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud_app
+    restart: always
+    ports:
+     - "8050:80"
+    volumes:
+     - nextcloud-data:/var/www/html
+     - ./backups:/var/www/html/data/backups
+    environment:
+      MYSQL_HOST: nextcloud-db 
+      MYSQL_DATABASE: nextcloud_db
+      MYSQL_USER: nextcloud_user
+      MYSQL_PASSWORD: nextcloud36
+    depends_on:
+     nextcloud-db:
+       condition: service_healthy
+    networks:
+     - app-network
+    command: bash -c "chown -R www-data:www-data /var/www/html/data && /entrypoint.sh apache2-foreground"
+
+  analytics-ia:
+    image: jupyter/scipy-notebook:latest
+    container_name: jupyter_analytics
+    restart: unless-stopped
+    ports:
+     - "8999:8888"
+    volumes:
+     - ./analytics:/home/jovyan/work 
+    environment:
+     JUPYTER_ENABLE_LAB: "yes"
+    networks:
+     - app-network
+    command: >
+      bash -c "pip install -r /home/jovyan/work/requirements.txt && start-notebook.sh --NotebookApp.token=''"
+    depends_on:
+     - mysql-maestro
+
 networks:
   app-network:
     driver: bridge
   monitoring:
     driver: bridge
 
+
 volumes:
   #mysql_data:
   prometheus-data:
   grafana-data:
+  nextcloud-data:
+  nextcloud-db-data:
