@@ -393,7 +393,23 @@ services:
     restart: unless-stopped
     volumes:
       - ./ddos_mitigation.sh:/usr/local/bin/ddos_mitigation.sh
-
+  simple-firewall:
+    build:
+      context: ./simple_firewall
+    container_name: simple-firewall
+    # CAP_ADD NET_ADMIN es OBLIGATORIO para que iptables funcione
+    cap_add:
+      - NET_ADMIN
+    environment:
+      # Define aquí a dónde permites que este contenedor se conecte hacia afuera.
+      # Por ejemplo, permitir conexión a un DNS de Google (8.8.8.8) por UDP
+      - ALLOW_IP_ADDRESS=8.8.8.8
+      - ALLOW_PORT=53
+      - ALLOW_PROTO=udp
+      - FIREWALL_READY_SIGNAL_PORT=60000
+    networks:
+      - app-network
+    restart: unless-stopped
 networks:
   app-network:
     driver: bridge
