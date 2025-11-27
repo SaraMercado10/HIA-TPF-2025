@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require("dotenv");
 const sequelize = require('./database'); // Importa sequelize desde tu archivo de configuración
+const helmet = require('helmet'); // <-- NUEVO: Para protección de headers
 //const { connectWithRetry } = require('./database'); // Importa la función de conexión
 // Importar modelos
 const Usuario = require('./models_sql/Usuario');
@@ -32,6 +33,8 @@ const app = express();
 dotenv.config();
 
 // Middlewares
+app.use(helmet()); // <-- NUEVO: Aplica headers de seguridad
+app.disable('x-powered-by'); // <-- NUEVO: Oculta la identidad del servidor (Express)
 app.use(express.json());
 app.use(cors({
   origin: [
