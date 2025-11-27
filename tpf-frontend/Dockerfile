@@ -11,6 +11,6 @@ FROM nginx:alpine
 # Eliminar la página por defecto
 RUN rm -rf /usr/share/nginx/html/*
 # Copiar SOLO el contenido de la carpeta browser/
-COPY --from=build /app/dist/tpf-frontend/browser/ /usr/share/nginx/html/
+COPY --from=build dist/tpf-frontend/browser/ /usr/share/nginx/html/
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

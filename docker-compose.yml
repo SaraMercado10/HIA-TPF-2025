@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./tpf-backend
+    # build:
+    #   context: ./tpf-backend
+    image: chechi20/my-node-app:latest
     container_name: tpf-backend
     restart: unless-stopped
     ports:
@@ -20,8 +21,9 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./tpf-frontend
+    # build:
+    #   context: ./tpf-frontend
+    image: chechi20/my-angular-app:latest
     container_name: tpf-frontend
     restart: unless-stopped
     ports:
