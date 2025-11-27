@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./tpf-backend
+    # build:
+    #   context: ./tpf-backend
+    image: chechi20/my-node-app:latest
     container_name: tpf-backend
     restart: unless-stopped
     ports:
@@ -15,13 +16,16 @@ services:
       DB_NAME: tpf_db_d
     networks:
       - app-network
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only=true
     depends_on:
       mysql-maestro:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./tpf-frontend
+    # build:
+    #   context: ./tpf-frontend
+    image: chechi20/my-angular-app:latest
     container_name: tpf-frontend
     restart: unless-stopped
     ports:
@@ -32,6 +36,8 @@ services:
       - ./tpf-frontend/nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - app-network
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only=true
     depends_on:
       - backend
 
@@ -267,11 +273,12 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup 
+    command: --interval 5 --cleanup --include-restarting
     environment:
       - DOCKER_USERNAME=${DOCKER_USERNAME} 
       - DOCKER_PASSWORD=${DOCKER_PASSWORD}
-      - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
+      - WATCHTOWER_SCOPE=com.centurylinklabs.watchtower.monitor-only=true
+      # - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
 
   glpi:
     image: glpi/glpi:latest
@@ -386,7 +393,23 @@ services:
     restart: unless-stopped
     volumes:
       - ./ddos_mitigation.sh:/usr/local/bin/ddos_mitigation.sh
-
+  simple-firewall:
+    build:
+      context: ./simple_firewall
+    container_name: simple-firewall
+    # CAP_ADD NET_ADMIN es OBLIGATORIO para que iptables funcione
+    cap_add:
+      - NET_ADMIN
+    environment:
+      # Define aquí a dónde permites que este contenedor se conecte hacia afuera.
+      # Por ejemplo, permitir conexión a un DNS de Google (8.8.8.8) por UDP
+      - ALLOW_IP_ADDRESS=8.8.8.8
+      - ALLOW_PORT=53
+      - ALLOW_PROTO=udp
+      - FIREWALL_READY_SIGNAL_PORT=60000
+    networks:
+      - app-network
+    restart: unless-stopped
 networks:
   app-network:
     driver: bridge
