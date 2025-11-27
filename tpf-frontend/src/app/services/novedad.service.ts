@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 })
 export class NovedadService {
   
-  url :string = 'http://localhost:3000/api/novedad';
+  url :string = '/api/novedad';
 
   constructor(private _http: HttpClient) { }
 

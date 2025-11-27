@@ -88,3 +88,6 @@ backups/
 *.bak
 *.archive
 backup*.gz
+# =============================
+# CERTIFICADOS
+certs/
