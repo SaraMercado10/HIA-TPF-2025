@@ -273,7 +273,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup
+    command: --interval 5 --cleanup --include-restarting
     environment:
       - DOCKER_USERNAME=${DOCKER_USERNAME} 
       - DOCKER_PASSWORD=${DOCKER_PASSWORD}
