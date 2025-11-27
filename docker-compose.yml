@@ -16,6 +16,8 @@ services:
       DB_NAME: tpf_db_d
     networks:
       - app-network
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only=true
     depends_on:
       mysql-maestro:
         condition: service_healthy
@@ -34,6 +36,8 @@ services:
       - ./tpf-frontend/nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - app-network
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only=true
     depends_on:
       - backend
 
@@ -269,11 +273,12 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup 
+    command: --interval 30 --cleanup
     environment:
       - DOCKER_USERNAME=${DOCKER_USERNAME} 
       - DOCKER_PASSWORD=${DOCKER_PASSWORD}
-      - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
+      - WATCHTOWER_SCOPE=com.centurylinklabs.watchtower.monitor-only=true
+      # - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
 
   glpi:
     image: glpi/glpi:latest
