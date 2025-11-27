@@ -10,8 +10,7 @@ export class PromocionService {
 
   constructor(private _http: HttpClient) { }
 
-  url :string = 'http://localhost:3000/api/promocion';
-
+  url :string = '/api/promocion';
   public save(promocion: Promocion): Observable<any>{
     let httpOptions = {
       headers: new HttpHeaders({

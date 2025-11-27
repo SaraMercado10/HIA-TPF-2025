@@ -11,8 +11,7 @@ export class AlquilerService {
 
   constructor(private _http: HttpClient) { }
 
-  url :string = 'http://localhost:3000/api/alquiler';
-
+  url :string = '/api/alquiler';
   public generarNumeroAlquiler(): Observable<any> {
     return this._http.get(this.url + '/generarNumeroAlquiler', { responseType: 'text' });
   }
