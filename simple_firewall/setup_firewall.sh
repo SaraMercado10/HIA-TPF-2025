@@ -48,6 +48,7 @@ iptables \
 
 # Permitir tráfico local a la red docker.
 # El rango de direcciones locales enrutadas por la interfaz eth0.
+# Nota: Al compartir red con el frontend, eth0 es la interfaz del frontend.
 docker_network=$(ip -o addr show dev eth0 | awk '$3 == "inet" {print $4}')
 
 iptables \

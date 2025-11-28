@@ -2,10 +2,12 @@ FROM alpine:3.7
 
 # Instalar dependencias en tiempo de ejecución.
 # netcat-openbsd es necesario porque el nc de busybox no soporta la bandera -k
+# iproute2 se agrega para asegurar que el comando 'ip' funcione con todas las banderas
 RUN apk --update add \
   iptables \
   ip6tables \
-  netcat-openbsd
+  netcat-openbsd \
+  iproute2
 
 # Valores por defecto (se pueden sobreescribir en docker-compose.yml)
 ENV ALLOW_IP_ADDRESS 1.1.1.1
