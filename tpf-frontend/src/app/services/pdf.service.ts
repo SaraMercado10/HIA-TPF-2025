@@ -7,8 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class PdfService {
 
-  private url = 'http://localhost:3000/api/pdf';
-  private urlpdf = 'http://localhost:3000/temp';
+  private url = '/api/pdf';
+  private urlpdf = '/api/temp'; // <--- OJO AQUÍ
   constructor(private _http: HttpClient) {}
 
   public generatePDF(data: any): Observable<any> {

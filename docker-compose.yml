@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  # --- 1. Aplicación Backend ---
   backend:
-    build:
-      context: ./tpf-backend
+    # build:
+    #   context: ./tpf-backend
+    image: chechi20/my-node-app:latest
     container_name: tpf-backend
     restart: unless-stopped
     ports:
@@ -16,46 +16,87 @@ services:
       DB_NAME: tpf_db_d
     networks:
       - app-network
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only=true
     depends_on:
-      mysql-db:
+      mysql-maestro:
         condition: service_healthy
 
-  # --- 2. Aplicación Frontend ---
   frontend:
-    build:
-      context: ./tpf-frontend
+    # build:
+    #   context: ./tpf-frontend
+    image: chechi20/my-angular-app:latest
     container_name: tpf-frontend
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+      - ./tpf-frontend/nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - app-network
+    labels:
+      - com.centurylinklabs.watchtower.monitor-only=true
     depends_on:
       - backend
 
-  # --- 3. Base de Datos ---
-  mysql-db:
+  mysql-maestro:
     image: mysql:8.0
-    container_name: mysql-db
+    container_name: mysql-maestro
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tpf_db_d
-    ports:
-      - "3307:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./mysql/data/maestro:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d
+      - ./mysql/logs/maestro:/var/log/mysql
+    ports:
+      - "3308:3306"
+    command: >
+      --server-id=1
+      --log-bin=mysql-bin
+      --binlog-format=ROW
+      --gtid_mode=ON
+      --enforce_gtid_consistency=ON
+      --log-slave-updates=ON
+      --read_only=OFF
     networks:
-      - app-network
+      app-network:
+        aliases:
+          - mysql-db  
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "mysql-db", "-u", "root", "-proot"]
-      interval: 5s
-      timeout: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      timeout: 20s
       retries: 10
-      start_period: 120s
 
-  # --- 4. PhpMyAdmin ---
+  mysql-esclavo:
+    image: mysql:8.0
+    container_name: mysql-esclavo
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tpf_db_d
+    volumes:
+      - ./mysql/data/esclavo:/var/lib/mysql
+      - ./mysql/logs/esclavo:/var/log/mysql
+      - ./scripts/setup-replication.sh:/docker-entrypoint-initdb.d/setup-replication.sh
+    command: >
+      --server-id=2
+      --log-bin=mysql-bin
+      --relay-log=relay-bin
+      --read-only=ON
+      --gtid_mode=ON
+      --enforce_gtid_consistency=ON
+      --log-slave-updates=ON
+      --skip-host-cache
+      --skip-name-resolve
+    depends_on:
+      - mysql-maestro
+    networks:
+      - app-network    
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
@@ -63,14 +104,12 @@ services:
       PMA_HOST: mysql-db
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-maestro
     networks:
       - app-network
 
-  # --- 5. Servicio de Backup ---
   backup:
     build:
       context: .
@@ -78,18 +117,78 @@ services:
     container_name: mysql-backup
     volumes:
       - ./backups:/backups
-    environment:
-      DB_HOST: mysql-db
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: tpf_db_d
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-maestro
     networks:
       - app-network
 
-  # --- 6. Prometheus ---
+  db-init:
+    image: mysql:8.0
+    container_name: db-init
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    depends_on:
+      - mysql-maestro
+    command: >
+      bash -c "
+        echo 'Esperando a MySQL (comprobando conexión)...';
+        until mysqladmin ping -h mysql-db -u root -proot --silent; do
+          echo 'MySQL no está listo, reintentando...';
+          sleep 5;
+        done
+        echo 'MySQL está listo. Verificando si BD está vacía...';
+        if ! mysql -h mysql-db -u root -proot -e 'USE tpf_db_d; SHOW TABLES;' | grep -q .; then
+          echo 'BD vacía → Ejecutando init.sql...';
+          mysql -h mysql-db -u root -proot < /docker-entrypoint-initdb.d/init.sql;
+          echo 'Carga completa.';
+        else
+          echo 'BD ya tiene datos → init.sql NO se ejecuta.';
+        fi
+        exit 0
+      "
+
+  mysqltuner:
+    image: debian:bullseye-slim
+    container_name: mysqltuner
+    networks:
+      - app-network
+    volumes:
+      - ./mysql/tuning/resultados:/results
+    depends_on:
+      - mysql-maestro
+    command: >
+      bash -c "
+        apt-get update -qq &&
+        apt-get install -y -qq mariadb-client perl curl &&
+        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl -o /mysqltuner.pl &&
+        chmod +x /mysqltuner.pl &&
+        echo 'Esperando a MySQL para mysqltuner...' &&
+        sleep 25 &&
+        perl /mysqltuner.pl --host mysql-db --user root --pass root > /results/mysqltuner.txt 2>&1 &&
+        echo 'mysqltuner listo: /results/mysqltuner.txt';
+      "
+
+  percona-toolkit:
+    image: percona/percona-toolkit:latest
+    container_name: percona-toolkit
+    networks:
+      - app-network
+    volumes:
+      - ./mysql/tuning/resultados:/results
+    depends_on:
+      - mysql-maestro
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "
+      echo 'Esperando a MySQL para Percona Toolkit...' &&
+      sleep 25 &&
+      echo 'Ejecutando pt-summary (salida /results/pt-summary.txt)...' &&
+      pt-summary > /results/pt-summary.txt 2>&1 ||
+      echo 'pt-summary fallo, revisá conectividad' &&
+      echo 'Listo'
+      "
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -108,7 +207,6 @@ services:
       - cadvisor
       - mysqld-exporter
 
-  # --- 7. Grafana ---
   grafana:
     image: grafana/grafana-oss:latest
     container_name: grafana
@@ -127,7 +225,6 @@ services:
     depends_on:
       - prometheus
 
-  # --- 8. Node Exporter ---
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -137,15 +234,14 @@ services:
     networks:
       - monitoring
 
-  # --- 9. cAdvisor ---
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
     expose:
-      - "8080" # usamos el puerto interno correcto
+      - "8080" 
     ports:
-      - "8081:8080" # visible desde el host si querés acceder
+      - "8082:8080" 
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
@@ -154,7 +250,6 @@ services:
     networks:
       - monitoring
 
-  # --- 10. MySQL Exporter ---
   mysqld-exporter:
     image: prom/mysqld-exporter:latest
     container_name: mysqld-exporter
@@ -165,47 +260,163 @@ services:
       - --config.my-cnf=/cfg/config-exporter.cnf
     volumes:
       - ./config-exporter.cnf:/cfg/config-exporter.cnf:ro
+    # environment:
+    #   DATA_SOURCE_NAME: exporter_user:exporter_pass@tcp(mysql-db:3306)/ # <--- ¡CLAVE!
+    
     networks:
       - monitoring
       - app-network
     depends_on:
-      mysql-db:
+      mysql-maestro:
         condition: service_healthy
 
-  # 11. MySqlTuner
-  mysqltuner:
-    image: debian:bullseye-slim
-    container_name: mysqltuner
-    depends_on:
-      mysql-db:
-        condition: service_healthy
-    networks:
-      - app-network
-    command: >
-      bash -c "
-        apt-get update && apt-get install -y mariadb-client perl curl &&
-        curl -sL https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl > /mysqltuner.pl &&
-        chmod +x /mysqltuner.pl &&
-        sleep 15 &&
-        perl /mysqltuner.pl --host mysql --user root --pass root
-      "    
-# --- 12. WatchTower (Despliegue Continuo) ---
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower 
     restart: unless-stopped
     volumes:
-     # Permite a Watchtower acceder y controlar el demonio de Docker
-     - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup 
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 5 --cleanup --include-restarting
     environment:
-     # 1. Credenciales para acceder a Docker Hub y hacer pull de tus imágenes privadas
-     - DOCKER_USERNAME=${DOCKER_USERNAME} 
-     - DOCKER_PASSWORD=${DOCKER_PASSWORD}
-     # Monitorea los contenedores de la aplicación:
-     - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
+      - DOCKER_USERNAME=${DOCKER_USERNAME} 
+      - DOCKER_PASSWORD=${DOCKER_PASSWORD}
+      - WATCHTOWER_SCOPE=com.centurylinklabs.watchtower.monitor-only=true
+      # - WATCHTOWER_INCLUDE_STOPPED=tpf-backend,tpf-frontend
 
-# --- Redes y Volúmenes ---
+  glpi:
+    image: glpi/glpi:latest
+    container_name: glpi_app
+    restart: unless-stopped
+    volumes:
+      - ./storage/glpi:/var/glpi:rw
+    environment:
+      - GLPI_DB_HOST=glpi-db
+      - GLPI_DB_NAME=${GLPI_DB_NAME}
+      - GLPI_DB_USER=${GLPI_DB_USER}
+      - GLPI_DB_PASSWORD=${GLPI_DB_PASSWORD}
+    depends_on:
+      glpi-db:
+        condition: service_healthy
+    ports:
+      - "8090:80"
+    networks:
+      - app-network
+
+  glpi-db:
+    image: mysql:8.0
+    container_name: glpi_db
+    restart: unless-stopped
+    volumes:
+       - ./storage/glpi_mysql:/var/lib/mysql
+       - ./glpi_init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${GLPI_DB_NAME}
+      MYSQL_USER: ${GLPI_DB_USER}
+      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+    networks:
+      - app-network
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3307:3306"
+
+  nextcloud-db:
+    image: mysql:8.0
+    container_name: nextcloud_db
+    restart: unless-stopped
+    volumes:
+     - nextcloud-db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: nextcloud_db
+      MYSQL_USER: nextcloud_user
+      MYSQL_PASSWORD: nextcloud36
+    networks:
+     - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# --- Nextcloud App ---
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud_app
+    restart: always
+    ports:
+     - "8050:80"
+    volumes:
+     - nextcloud-data:/var/www/html
+     - ./backups:/var/www/html/data/backups
+    environment:
+      MYSQL_HOST: nextcloud-db 
+      MYSQL_DATABASE: nextcloud_db
+      MYSQL_USER: nextcloud_user
+      MYSQL_PASSWORD: nextcloud36
+    depends_on:
+     nextcloud-db:
+       condition: service_healthy
+    networks:
+     - app-network
+    command: bash -c "chown -R www-data:www-data /var/www/html/data && /entrypoint.sh apache2-foreground"
+
+  analytics-ia:
+    image: jupyter/scipy-notebook:latest
+    container_name: jupyter_analytics
+    restart: unless-stopped
+    ports:
+     - "8999:8888"
+    volumes:
+     - ./analytics:/home/jovyan/work 
+    environment:
+     JUPYTER_ENABLE_LAB: "yes"
+    networks:
+     - app-network
+    command: >
+      bash -c "pip install -r /home/jovyan/work/requirements.txt && start-notebook.sh --NotebookApp.token=''"
+    depends_on:
+     - mysql-maestro
+
+  security-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.security
+    container_name: hia-security-monitor
+    # IMPORTANTE: network_mode: host permite ver las IPs reales que llegan al servidor
+    network_mode: host
+    # IMPORTANTE: NET_ADMIN es necesario para ejecutar comandos iptables
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    volumes:
+      - ./ddos_mitigation.sh:/usr/local/bin/ddos_mitigation.sh
+
+  simple-firewall:
+    build:
+      context: ./simple_firewall
+    container_name: simple-firewall
+    # CAP_ADD NET_ADMIN es OBLIGATORIO para que iptables funcione y proteja al frontend
+    cap_add:
+      - NET_ADMIN
+    # MODO SIDECAR: Comparte la red del frontend
+    network_mode: "service:frontend"
+    depends_on:
+      - frontend
+    environment:
+      # Define a dónde se permite salir. 
+      - ALLOW_IP_ADDRESS=8.8.8.8
+      - ALLOW_PORT=53
+      - ALLOW_PROTO=udp
+      - FIREWALL_READY_SIGNAL_PORT=60000
+    restart: unless-stopped
+
 networks:
   app-network:
     driver: bridge
@@ -213,6 +424,8 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:
+  #mysql_data:
   prometheus-data:
   grafana-data:
+  nextcloud-data:
+  nextcloud-db-data:

@@ -157,6 +157,7 @@ FROM alquileres a
 JOIN (
   SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
 ) m ON m.n < a.cantidadMesAlquiler
+
 LIMIT 5000;
 -- 1. Crear el usuario para el exportador (acceso desde cualquier host '%')
 CREATE USER IF NOT EXISTS 'exporter_user'@'%' IDENTIFIED BY 'exporter_pass';

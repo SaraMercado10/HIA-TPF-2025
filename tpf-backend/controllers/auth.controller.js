@@ -19,7 +19,12 @@ authCtrl.verifyToken = async (req, res, next) => {
 
     // Verificar el token
     try {
-        const payload = jwt.verify(token, "secretkey");
+        // Lee la clave secreta de las variables de entorno para seguridad
+        const SECRET = process.env.JWT_SECRET || 'fallback_secreto_muy_largo_y_seguro'; 
+        
+        // Verifica el token usando la clave segura
+        const payload = jwt.verify(token, SECRET); 
+        
         // payload retorna la información del user que se usó en el método de login
         req.userId = payload._id;
         next(); // se pasa a procesar el siguiente método del stack de la petición

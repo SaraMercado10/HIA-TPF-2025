@@ -10,7 +10,7 @@ export class LocalService {
 
   constructor(private _http: HttpClient) { }
 
-  url :string = 'http://localhost:3000/api/local';
+  url :string = '/api/local';
 
   public crearLocal(local: Local): Observable<any>{
     let httpOptions = {

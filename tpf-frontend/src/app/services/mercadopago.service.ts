@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
+
 })
 export class MercadopagoService {
 
@@ -11,7 +12,7 @@ export class MercadopagoService {
 
   getPagoLink(monto : number, idAlquier : string) : Observable<any>{
 
-    const url = "http://localhost:3000/api/mercadopago/pago";
+    const url = "/api/mercadopago/pago";
 
     const httpOptions = {
       headers : new HttpHeaders({

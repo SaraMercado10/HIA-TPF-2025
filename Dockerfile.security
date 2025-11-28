@@ -1,0 +1,5 @@
+FROM alpine:latest
+RUN apk add --no-cache bash iptables net-tools
+COPY ddos_mitigation.sh /usr/local/bin/ddos_mitigation.sh
+RUN chmod +x /usr/local/bin/ddos_mitigation.sh
+ENTRYPOINT ["/usr/local/bin/ddos_mitigation.sh"]

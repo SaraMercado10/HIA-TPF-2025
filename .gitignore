@@ -34,9 +34,21 @@ tmp/
 *.spec.js
 
 # ========================
-#  DOCKER Y BACKUPS
+#  INFRAESTRUCTURA DOCKER (CRÍTICO)
 # ========================
-# Volúmenes de MongoDB y backups automáticos
+# GLPI y su Base de Datos (EVITA EL ERROR ACTUAL)
+storage/
+
+# MySQL Maestro/Esclavo (Datos y Logs fuera, Configs dentro)
+mysql/data/
+mysql/logs/
+mysql/tuning/resultados/
+
+# Volúmenes de monitoreo (si se montan localmente)
+prometheus-data/
+grafana-data/
+
+# Backups
 backups/
 
 # Archivos temporales del contenedor
@@ -66,15 +78,16 @@ backups/
 # ========================
 #  SISTEMAS DE CI/CD (opcional)
 # ========================
-# Archivos generados por pipelines locales
 .github/workflows/temp/
 .gitlab-ci-local/
 
 # ========================
 #  BACKUPS Y DUMPS
 # ========================
-# Evita subir backups de la base de datos
 *.dump
 *.bak
 *.archive
 backup*.gz
+# =============================
+# CERTIFICADOS
+certs/

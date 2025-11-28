@@ -1,37 +1,18 @@
 #!/bin/bash
-if [ ! -f /tmp/backup_initialized ]; then
-  echo "⏳ Primera ejecución: esperando a que MySQL esté completamente listo..."
-  sleep 20
-  touch /tmp/backup_initialized
-fi
-
+DB_HOST="mysql-db" 
+DB_USER="root"
+DB_PASS="root"
+DB_NAME="tpf_db_d"
 BACKUP_DIR="/backups"
 
-DATE=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="$BACKUP_DIR/backup_$DATE.sql"
+echo "⏳ Primera ejecución: esperando a que MySQL esté completamente listo..."
+until mysqladmin ping -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" --silent; do
+    echo "MySQL no listo, reintentando..."
+    sleep 3
+done
 
-# --- CORRECCIÓN ---
-# Ahora usamos las variables de entorno (DB_HOST, DB_USER, etc.)
-# que se definen en docker-compose.yml.
-# Ya no están "hardcodeadas" en el script.
-mysqldump \
-  -h "${DB_HOST}" \
-  -u "${DB_USER}" \
-  -p"${DB_PASSWORD}" \
-  --single-transaction \
-  --routines \
-  --triggers \
-  --set-gtid-purged=OFF \
-  "${DB_NAME}" > "$BACKUP_FILE"
+echo "MySQL listo. Ejecutando backup..."
+mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > \
+    "$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
 
-if [ $? -eq 0 ]; then
-  echo "✅ Backup exitoso: $BACKUP_FILE"
-
-  if [ $(ls -1 "$BACKUP_DIR"/backup_*.sql 2>/dev/null | wc -l) -gt 10 ]; then
-    echo "🧹 Limpiando backups antiguos..."
-    ls -tp "$BACKUP_DIR"/backup_*.sql | tail -n +11 | xargs -r rm --
-  fi
-else
-  echo "Error al realizar el backup de la base de datos '${DB_NAME}'"
-  exit 1
-fi
+echo "Backup exitoso"
