@@ -260,6 +260,9 @@ services:
       - --config.my-cnf=/cfg/config-exporter.cnf
     volumes:
       - ./config-exporter.cnf:/cfg/config-exporter.cnf:ro
+    # environment:
+    #   DATA_SOURCE_NAME: exporter_user:exporter_pass@tcp(mysql-db:3306)/ # <--- ¡CLAVE!
+    
     networks:
       - monitoring
       - app-network

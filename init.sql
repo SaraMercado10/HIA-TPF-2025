@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS `tpf_db_d`;
 CREATE DATABASE IF NOT EXISTS tpf_db_d;
 USE tpf_db_d;
 
