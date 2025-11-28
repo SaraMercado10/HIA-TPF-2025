@@ -380,6 +380,7 @@ services:
       bash -c "pip install -r /home/jovyan/work/requirements.txt && start-notebook.sh --NotebookApp.token=''"
     depends_on:
      - mysql-maestro
+
   security-monitor:
     build:
       context: .
@@ -393,29 +394,31 @@ services:
     restart: unless-stopped
     volumes:
       - ./ddos_mitigation.sh:/usr/local/bin/ddos_mitigation.sh
+
   simple-firewall:
     build:
       context: ./simple_firewall
     container_name: simple-firewall
-    # CAP_ADD NET_ADMIN es OBLIGATORIO para que iptables funcione
+    # CAP_ADD NET_ADMIN es OBLIGATORIO para que iptables funcione y proteja al frontend
     cap_add:
       - NET_ADMIN
+    # MODO SIDECAR: Comparte la red del frontend
+    network_mode: "service:frontend"
+    depends_on:
+      - frontend
     environment:
-      # Define aquí a dónde permites que este contenedor se conecte hacia afuera.
-      # Por ejemplo, permitir conexión a un DNS de Google (8.8.8.8) por UDP
+      # Define a dónde se permite salir. 
       - ALLOW_IP_ADDRESS=8.8.8.8
       - ALLOW_PORT=53
       - ALLOW_PROTO=udp
       - FIREWALL_READY_SIGNAL_PORT=60000
-    networks:
-      - app-network
     restart: unless-stopped
+
 networks:
   app-network:
     driver: bridge
   monitoring:
     driver: bridge
-
 
 volumes:
   #mysql_data:
