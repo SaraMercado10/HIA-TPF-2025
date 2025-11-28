@@ -75,7 +75,7 @@ La arquitectura del proyecto se divide en las siguientes capas y servicios:
 
     ```properties
     # Credenciales de Docker Hub (para Watchtower/Pull)
-    DOCKER_USERNAME=chechi20
+    DOCKER_USERNAME=
     DOCKER_PASSWORD=
 
     # Configuración de GLPI
