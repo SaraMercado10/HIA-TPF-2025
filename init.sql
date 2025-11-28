@@ -168,3 +168,11 @@ JOIN (
   SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
 ) m ON m.n < a.cantidadMesAlquiler
 LIMIT 2500000;
+-- 1. Crear el usuario para el exportador (acceso desde cualquier host '%')
+CREATE USER IF NOT EXISTS 'exporter_user'@'%' IDENTIFIED BY 'exporter_pass';
+
+-- 2. Darle los permisos mínimos necesarios para monitoreo
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter_user'@'%';
+
+-- 3. Aplicar cambios
+FLUSH PRIVILEGES;
